@@ -1,5 +1,12 @@
 
 import { SummaryOutput } from '@/types';
+import { callGeminiApi, createPrompt } from '@/services/geminiService';
+import { 
+  extractTextFromGeminiResponse, 
+  extractSummary, 
+  extractRelatedQuestions,
+  generateFallbackContent
+} from '@/utils/responseUtils';
 
 /**
  * API route handler for summarizing content
@@ -20,7 +27,7 @@ export async function POST(request: Request) {
     // Log which model was requested
     console.log(`Model requested: ${model || 'default'}`);
     
-    // Use Gemini API for summarization
+    // Call the Gemini service for summarization
     const result = await callGeminiService(content, type, model);
     
     return new Response(
@@ -40,75 +47,15 @@ export async function POST(request: Request) {
  * Function to call Gemini API for summarization
  */
 async function callGeminiService(content: string, type: 'text' | 'url', modelId?: string): Promise<SummaryOutput> {
-  // Using the provided Gemini API key
-  const GEMINI_API_KEY = 'AIzaSyD38ovCCHVPectV46kPSqWI1Ehx2sfIrE4';
-  
-  // Enhanced prompt for accessibility and conciseness
-  const prompt = type === 'url' 
-    ? `Please summarize the content from this URL: ${content}. This app is for visually impaired users, so provide direct, factual, and concise answers without summarizing the question back. For date or time questions, give the actual date/time information. Include 3 relevant follow-up questions that are very brief.`
-    : `Please answer this question directly: ${content}. This app is for visually impaired users, so provide direct, factual, and concise answers without summarizing the question back. For date or time questions, give the actual date/time information. Include 3 relevant follow-up questions that are very brief.`;
-
   try {
-    // Map requested model to appropriate Gemini model
-    // By default we'll use gemini-2.0-flash as the fastest model
-    let geminiModel = 'gemini-2.0-flash';
-    
-    // Model mapping based on user selection
-    if (modelId) {
-      switch(modelId) {
-        case 'gemini':
-          geminiModel = 'gemini-2.0-flash';
-          break;
-        case 'mistral':
-        case 'perplexity':
-          // For these models we'll use gemini-2.0-pro
-          geminiModel = 'gemini-2.0-pro';
-          break;
-        case 'chatgpt':
-          // For ChatGPT option we'll use the most powerful model
-          geminiModel = 'gemini-2.0-pro';
-          break;
-        default:
-          geminiModel = 'gemini-2.0-flash';
-      }
-    }
+    // Create prompt for the AI model
+    const prompt = createPrompt(content, type);
 
-    console.log(`Using Gemini model: ${geminiModel}`);
-
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{ text: prompt }]
-        }],
-        generationConfig: {
-          temperature: 0.2, // Lower temperature for more direct answers
-          maxOutputTokens: 800,
-        }
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Gemini API error response:', errorData);
-      throw new Error(`Gemini API request failed: ${response.status}`);
-    }
-
-    const data = await response.json();
+    // Call the Gemini API
+    const data = await callGeminiApi(prompt, modelId);
     
     // Extract text from Gemini response
-    let fullResponse = '';
-    if (data.candidates && data.candidates[0]?.content?.parts) {
-      fullResponse = data.candidates[0].content.parts
-        .filter((part: any) => part.text)
-        .map((part: any) => part.text)
-        .join('\n');
-    } else {
-      throw new Error('Unexpected response format from Gemini API');
-    }
+    const fullResponse = extractTextFromGeminiResponse(data);
     
     // Parse the response to extract summary and related questions
     const summary = extractSummary(fullResponse);
@@ -127,81 +74,9 @@ async function callGeminiService(content: string, type: 'text' | 'url', modelId?
   } catch (error) {
     console.error('Gemini API error:', error);
     
-    // If API fails, fall back to a simulated response with more context
+    // If API fails, fall back to a simulated response
     console.log('Falling back to simulated response');
     
-    // More helpful fallback for visually impaired users
-    const summary = `Unable to generate an answer right now. The AI service is currently unavailable. Please try again in a few moments.`;
-
-    // Simple related questions for fallback
-    const relatedQuestions = [
-      `Try again?`,
-      `Check your internet connection?`,
-      `Try a different query?`
-    ];
-
-    return {
-      summary,
-      sources: type === 'url' ? [{
-        id: '1',
-        title: 'Provided URL',
-        briefSummary: 'Original source',
-        url: content
-      }] : [],
-      relatedQuestions
-    };
+    return generateFallbackContent(content, type);
   }
-}
-
-/**
- * Helper function to extract the summary from LLM response
- */
-function extractSummary(response: string): string {
-  // Look for "Summary:" or just return the whole thing if we can't find it
-  const summaryMatch = response.match(/Summary:([\s\S]*?)(?:Related Questions:|$)/i);
-  if (summaryMatch && summaryMatch[1]) {
-    return summaryMatch[1].trim();
-  }
-  
-  // If no "Summary:" section found, return everything before "Related Questions:"
-  const relatedQuestionsIndex = response.indexOf("Related Questions:");
-  if (relatedQuestionsIndex > -1) {
-    return response.substring(0, relatedQuestionsIndex).trim();
-  }
-  
-  // If no pattern is found, just return the whole response
-  return response;
-}
-
-/**
- * Helper function to extract related questions from LLM response
- */
-function extractRelatedQuestions(response: string): string[] {
-  const questionsMatch = response.match(/Related Questions:([\s\S]*)/i);
-  
-  if (questionsMatch && questionsMatch[1]) {
-    // Try to split by numbered list (1., 2., 3.)
-    const questionText = questionsMatch[1].trim();
-    const questions = questionText.split(/\d+\.\s+/)
-      .map(q => q.trim())
-      .filter(q => q.length > 0);
-    
-    if (questions.length > 0) {
-      return questions;
-    }
-    
-    // Fallback to splitting by newlines
-    return questionText.split('\n')
-      .map(line => line.trim().replace(/^[•\-*]\s+/, ''))
-      .filter(line => line.length > 0 && line.endsWith('?'))
-      .slice(0, 3);
-  }
-  
-  // Fallback: Look for question marks in the text
-  const questionRegex = /(\b[^.!?]+\?)/g;
-  const allQuestions = [...response.matchAll(questionRegex)]
-    .map(match => match[0].trim())
-    .filter(q => q.length > 10 && q.length < 100);
-  
-  return allQuestions.slice(0, 3);
 }
