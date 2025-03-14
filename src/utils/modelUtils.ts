@@ -5,6 +5,15 @@ import { toast } from '@/components/ui/use-toast';
 // Model configurations
 export const AVAILABLE_MODELS: ModelConfig[] = [
   { 
+    id: 'gemini',
+    name: 'Gemini',
+    description: 'Google\'s Generative AI model for comprehensive text generation',
+    subModels: [
+      { id: 'gemini-2.0-flash', name: 'Gemini Flash', description: 'Fast response model' },
+      { id: 'gemini-2.0-pro', name: 'Gemini Pro', description: 'Balanced performance model' }
+    ]
+  },
+  { 
     id: 'chatgpt',
     name: 'ChatGPT',
     description: 'OpenAI\'s GPT model for versatile text generation',
@@ -16,7 +25,7 @@ export const AVAILABLE_MODELS: ModelConfig[] = [
   { 
     id: 'perplexity',
     name: 'Perplexity',
-    description: 'Uses GPT-4o Mini, but optimized for knowledge retrieval',
+    description: 'Optimized for knowledge retrieval',
     subModels: [
       { id: 'pplx-7b-online', name: 'PPLX 7B', description: 'Small online model' },
       { id: 'pplx-70b-online', name: 'PPLX 70B', description: 'Medium online model' },
@@ -24,19 +33,9 @@ export const AVAILABLE_MODELS: ModelConfig[] = [
     ]
   },
   {
-    id: 'gemini',
-    name: 'Gemini',
-    description: 'Uses GPT-4o Mini for summarizations',
-    subModels: [
-      { id: 'gemini-pro', name: 'Gemini Pro', description: 'Balanced performance model' },
-      { id: 'gemini-ultra', name: 'Gemini Ultra', description: 'Most capable Google model' },
-      { id: 'gemini-flash', name: 'Gemini Flash', description: 'Fast response model' }
-    ]
-  },
-  {
     id: 'mistral',
     name: 'Mistral',
-    description: 'Uses GPT-4o Mini for efficiency',
+    description: 'Efficient and powerful language model',
     subModels: [
       { id: 'mistral-small', name: 'Mistral Small', description: 'Fast and efficient model' },
       { id: 'mistral-medium', name: 'Mistral Medium', description: 'Balanced performance' },
@@ -70,7 +69,7 @@ export const selectModel = (modelId: AIModel, subModelId?: string): void => {
 
 export const getCurrentModel = (): AIModel => {
   const savedModel = localStorage.getItem('selected-model') as AIModel | null;
-  return savedModel || 'chatgpt';  // Default to ChatGPT instead of Claude
+  return savedModel || 'gemini';  // Default to Gemini
 };
 
 export const getCurrentSubModel = (): string | null => {

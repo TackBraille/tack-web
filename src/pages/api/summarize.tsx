@@ -20,8 +20,8 @@ export async function POST(request: Request) {
     // Log which model was requested
     console.log(`Model requested: ${model || 'default'}`);
     
-    // Use OpenAI API for summarization
-    const result = await callOpenAIService(content, type, model);
+    // Use Gemini API for summarization
+    const result = await callGeminiService(content, type, model);
     
     return new Response(
       JSON.stringify(result),
@@ -37,56 +37,78 @@ export async function POST(request: Request) {
 }
 
 /**
- * Function to call OpenAI API for summarization
+ * Function to call Gemini API for summarization
  */
-async function callOpenAIService(content: string, type: 'text' | 'url', modelId?: string): Promise<SummaryOutput> {
-  // Using the provided OpenAI API key
-  const OPENAI_API_KEY = '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';
+async function callGeminiService(content: string, type: 'text' | 'url', modelId?: string): Promise<SummaryOutput> {
+  // Using the provided Gemini API key
+  const GEMINI_API_KEY = 'AIzaSyD38ovCCHVPectV46kPSqWI1Ehx2sfIrE4';
   
   const prompt = type === 'url' 
     ? `Please summarize the content from this URL: ${content}. Include 3 related questions about the content.`
     : `Please summarize this text: ${content}. Include 3 related questions about the content.`;
 
   try {
-    // Determine which model to use based on modelId
-    // OpenAI models: gpt-4o, gpt-4o-mini
-    const modelToUse = modelId === 'chatgpt' 
-      ? 'gpt-4o' 
-      : 'gpt-4o-mini'; // Default to faster model for other selections
+    // Map requested model to appropriate Gemini model
+    // By default we'll use gemini-2.0-flash as the fastest model
+    let geminiModel = 'gemini-2.0-flash';
+    
+    // Model mapping based on user selection
+    if (modelId) {
+      switch(modelId) {
+        case 'gemini':
+          geminiModel = 'gemini-2.0-flash';
+          break;
+        case 'mistral':
+        case 'llama':
+        case 'perplexity':
+          // For these models we'll use gemini-2.0-pro
+          geminiModel = 'gemini-2.0-pro';
+          break;
+        case 'chatgpt':
+          // For ChatGPT option we'll use the most powerful model
+          geminiModel = 'gemini-2.0-pro';
+          break;
+        default:
+          geminiModel = 'gemini-2.0-flash';
+      }
+    }
 
-    console.log(`Using OpenAI model: ${modelToUse}`);
+    console.log(`Using Gemini model: ${geminiModel}`);
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: modelToUse,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful AI that provides concise summaries. When asked to summarize, also include 3 related questions that would be valuable follow-ups.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
+        contents: [{
+          parts: [{ text: prompt }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1000,
+        }
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error response:', errorData);
-      throw new Error(`OpenAI API request failed: ${response.status}`);
+      console.error('Gemini API error response:', errorData);
+      throw new Error(`Gemini API request failed: ${response.status}`);
     }
 
     const data = await response.json();
-    const fullResponse = data.choices[0].message.content;
+    
+    // Extract text from Gemini response
+    let fullResponse = '';
+    if (data.candidates && data.candidates[0]?.content?.parts) {
+      fullResponse = data.candidates[0].content.parts
+        .filter((part: any) => part.text)
+        .map((part: any) => part.text)
+        .join('\n');
+    } else {
+      throw new Error('Unexpected response format from Gemini API');
+    }
     
     // Parse the response to extract summary and related questions
     const summary = extractSummary(fullResponse);
@@ -103,7 +125,7 @@ async function callOpenAIService(content: string, type: 'text' | 'url', modelId?
       relatedQuestions
     };
   } catch (error) {
-    console.error('OpenAI API error:', error);
+    console.error('Gemini API error:', error);
     
     // If API fails, fall back to a simulated response
     console.log('Falling back to simulated response');
