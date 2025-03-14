@@ -20,12 +20,8 @@ export async function POST(request: Request) {
     // Log which model was requested
     console.log(`Model requested: ${model || 'default'}`);
     
-    // Actually call the AI service based on the model requested
-    let result;
-    
-    // Use different summarization services based on model
-    // For now, we'll use TogetherAI for all models to simplify
-    result = await callTogetherAIService(content, type, model);
+    // Use Anthropic API for summarization
+    const result = await callAnthropicService(content, type, model);
     
     return new Response(
       JSON.stringify(result),
@@ -41,59 +37,52 @@ export async function POST(request: Request) {
 }
 
 /**
- * Function to call Together AI summarization service
+ * Function to call Anthropic Claude API for summarization
  */
-async function callTogetherAIService(content: string, type: 'text' | 'url', modelId?: string): Promise<SummaryOutput> {
-  const TOGETHER_API_KEY = '78d84b5a9b94f0638bd4715a45b6cf229cfdd66eeed83c8d417d1d91fa792607';
+async function callAnthropicService(content: string, type: 'text' | 'url', modelId?: string): Promise<SummaryOutput> {
+  // This would normally be in an environment variable
+  const ANTHROPIC_API_KEY = 'sk-ant-api03-demo-key-for-testing';
   
   const prompt = type === 'url' 
     ? `Please summarize the content from this URL: ${content}. Include 3 related questions about the content.`
     : `Please summarize this text: ${content}. Include 3 related questions about the content.`;
 
   try {
-    // We'll actually make the API call instead of simulating it
-    console.log(`Making real API call to Together AI for: ${content.substring(0, 30)}...`);
-    
-    // Choose model based on modelId parameter or default to Mixtral
-    const modelToUse = modelId === 'llama' 
-      ? 'meta-llama/Llama-3.1-8B-Instruct'
-      : modelId === 'mistral' 
-      ? 'mistralai/Mixtral-8x7B-Instruct-v0.1'
-      : modelId === 'gemini'
-      ? 'google/gemma-7b-it'
-      : 'mistralai/Mixtral-8x7B-Instruct-v0.1'; // Default model
+    // Determine which model to use based on modelId
+    // Claude models: claude-3-opus-20240229, claude-3-sonnet-20240229, claude-3-haiku-20240307
+    const modelToUse = modelId === 'claude' 
+      ? 'claude-3-opus-20240229'
+      : 'claude-3-haiku-20240307'; // Default to faster model for other selections
 
-    console.log(`Using model: ${modelToUse}`);
+    console.log(`Using Claude model: ${modelToUse}`);
 
-    const response = await fetch('https://api.together.xyz/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${TOGETHER_API_KEY}`,
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: modelToUse,
+        max_tokens: 1000,
+        temperature: 0.7,
+        system: "You are a helpful AI that provides concise summaries. When asked to summarize, also include 3 related questions that would be valuable follow-ups.",
         messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful AI that provides concise summaries. When asked to summarize, also include 3 related questions that would be valuable follow-ups.'
-          },
           {
             role: 'user',
             content: prompt
           }
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
+        ]
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`Together AI API request failed: ${response.status}`);
+      throw new Error(`Anthropic API request failed: ${response.status}`);
     }
 
     const data = await response.json();
-    const fullResponse = data.choices[0].message.content;
+    const fullResponse = data.content[0].text;
     
     // Parse the response to extract summary and related questions
     const summary = extractSummary(fullResponse);
@@ -110,7 +99,7 @@ async function callTogetherAIService(content: string, type: 'text' | 'url', mode
       relatedQuestions
     };
   } catch (error) {
-    console.error('Together AI API error:', error);
+    console.error('Anthropic API error:', error);
     
     // If API fails, fall back to a simulated response
     console.log('Falling back to simulated response');
