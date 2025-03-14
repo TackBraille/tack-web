@@ -29,17 +29,21 @@ const ChatSessionItem = ({
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setShowDeleteConfirm(true);
   };
 
   const handleConfirmDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
+    console.log('Deleting session:', session.id);
     onDelete();
     setShowDeleteConfirm(false);
   };
 
   const handleCancelDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setShowDeleteConfirm(false);
   };
 
@@ -73,11 +77,11 @@ const ChatSessionItem = ({
           <SidebarMenuAction
             onClick={handleDeleteClick}
             showOnHover
-            className="p-1"
+            className="p-1 hover:bg-destructive/10"
             aria-label={`Delete ${chatName}`}
             data-testid={`delete-chat-${session.id}`}
           >
-            <Trash2 size={14} aria-hidden="true" />
+            <Trash2 size={14} className="text-muted-foreground hover:text-destructive" aria-hidden="true" />
           </SidebarMenuAction>
         </div>
       )}

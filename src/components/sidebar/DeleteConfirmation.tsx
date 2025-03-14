@@ -21,6 +21,7 @@ const DeleteConfirmation = ({ onConfirm, onCancel, itemName = 'item' }: DeleteCo
       </span>
       <SidebarMenuAction
         onClick={onConfirm}
+        className="text-destructive hover:bg-destructive/10"
         aria-label={`Confirm delete ${itemName}`}
       >
         <Trash2 size={14} className="text-destructive" aria-hidden="true" />

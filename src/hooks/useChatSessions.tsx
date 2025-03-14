@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SummaryOutput, ChatSession } from '@/types';
 import { 
   getChatSessions, 
@@ -32,38 +32,39 @@ export function useChatSessions() {
     }
   }, []);
 
-  const handleNewChat = () => {
+  const handleNewChat = useCallback(() => {
     const newSession = createChatSession();
-    setChatSessions([newSession, ...chatSessions.filter(s => s.id !== newSession.id)]);
+    setChatSessions(prevSessions => [newSession, ...prevSessions.filter(s => s.id !== newSession.id)]);
     setCurrentSessionId(newSession.id);
     setHistory([]);
     setSummaryData(null);
-  };
+  }, []);
 
-  const handleSelectSession = (sessionId: string) => {
+  const handleSelectSession = useCallback((sessionId: string) => {
     setCurrentSession(sessionId);
     setCurrentSessionId(sessionId);
     const sessionHistory = getSessionHistory(sessionId);
     setHistory(sessionHistory);
     setSummaryData(sessionHistory.length > 0 ? sessionHistory[sessionHistory.length - 1] : null);
-  };
+  }, []);
 
-  const handleDeleteSession = (sessionId: string) => {
+  const handleDeleteSession = useCallback((sessionId: string) => {
+    console.log('Deleting session from hook:', sessionId);
+    
     // Delete from local storage first
     deleteChatSession(sessionId);
     
     // Then update the state
     setChatSessions(prevSessions => prevSessions.filter(s => s.id !== sessionId));
     
-    // If the deleted session was the current one, select another session or clear the current session
+    // If the deleted session was the current one, select another session or create a new one
     if (currentSessionId === sessionId) {
       const remainingSessions = chatSessions.filter(s => s.id !== sessionId);
       if (remainingSessions.length > 0) {
         handleSelectSession(remainingSessions[0].id);
       } else {
-        setCurrentSessionId(null);
-        setHistory([]);
-        setSummaryData(null);
+        // If no sessions remain, create a new one
+        handleNewChat();
       }
     }
     
@@ -72,9 +73,9 @@ export function useChatSessions() {
       title: "Chat deleted",
       description: "The chat has been removed from your history.",
     });
-  };
+  }, [chatSessions, currentSessionId, handleNewChat, handleSelectSession]);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setSummaryData(null);
     setHistory([]);
     setChatSessions([]);
@@ -84,9 +85,9 @@ export function useChatSessions() {
       title: 'Application reset',
       description: 'The application has been reset.',
     });
-  };
+  }, []);
 
-  const updateSessionAfterResponse = (result: SummaryOutput) => {
+  const updateSessionAfterResponse = useCallback((result: SummaryOutput) => {
     // Add to history
     const updatedHistory = [...history, result];
     setHistory(updatedHistory);
@@ -100,7 +101,7 @@ export function useChatSessions() {
     }
     
     setSummaryData(result);
-  };
+  }, [currentSessionId, history]);
 
   return {
     summaryData,

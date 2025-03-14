@@ -20,7 +20,11 @@ export const getChatSessions = (): ChatSession[] => {
 
 // Save chat sessions
 export const saveChatSessions = (sessions: ChatSession[]): void => {
-  localStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(sessions));
+  try {
+    localStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(sessions));
+  } catch (error) {
+    console.error('Error saving chat sessions:', error);
+  }
 };
 
 // Create a new chat session
@@ -42,15 +46,34 @@ export const createChatSession = (firstQuery?: string): ChatSession => {
 
 // Delete a chat session
 export const deleteChatSession = (sessionId: string): void => {
-  const sessions = getChatSessions().filter(session => session.id !== sessionId);
-  saveChatSessions(sessions);
-  
-  // Remove session history
-  localStorage.removeItem(`${SESSION_HISTORY_PREFIX}${sessionId}`);
-  
-  // If current session was deleted, set current to null
-  if (getCurrentSession() === sessionId) {
-    setCurrentSession(sessions.length > 0 ? sessions[0].id : null);
+  try {
+    console.log('Deleting session from utils:', sessionId);
+    
+    // Get current sessions
+    const sessions = getChatSessions();
+    
+    // Filter out the session to delete
+    const updatedSessions = sessions.filter(session => session.id !== sessionId);
+    
+    // Save updated sessions list
+    saveChatSessions(updatedSessions);
+    
+    // Remove session history
+    localStorage.removeItem(`${SESSION_HISTORY_PREFIX}${sessionId}`);
+    
+    // If current session was deleted, update current session
+    const currentSession = getCurrentSession();
+    if (currentSession === sessionId) {
+      if (updatedSessions.length > 0) {
+        setCurrentSession(updatedSessions[0].id);
+      } else {
+        localStorage.removeItem(CURRENT_SESSION_KEY);
+      }
+    }
+    
+    console.log('Deletion completed for session:', sessionId);
+  } catch (error) {
+    console.error('Error deleting chat session:', error);
   }
 };
 
@@ -101,16 +124,20 @@ export const getSessionHistory = (sessionId: string): SummaryOutput[] => {
 
 // Save session history
 export const saveSessionHistory = (sessionId: string, history: SummaryOutput[]): void => {
-  localStorage.setItem(`${SESSION_HISTORY_PREFIX}${sessionId}`, JSON.stringify(history));
-  
-  // Update session timestamp
-  const sessions = getChatSessions();
-  const session = sessions.find(s => s.id === sessionId);
-  
-  if (session) {
-    updateChatSession(sessionId, { 
-      updatedAt: new Date()
-    });
+  try {
+    localStorage.setItem(`${SESSION_HISTORY_PREFIX}${sessionId}`, JSON.stringify(history));
+    
+    // Update session timestamp
+    const sessions = getChatSessions();
+    const session = sessions.find(s => s.id === sessionId);
+    
+    if (session) {
+      updateChatSession(sessionId, { 
+        updatedAt: new Date()
+      });
+    }
+  } catch (error) {
+    console.error(`Error saving history for session ${sessionId}:`, error);
   }
 };
 
