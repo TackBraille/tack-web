@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MessageCircle, Trash2, Edit, Download } from 'lucide-react';
 import { 
@@ -90,7 +89,7 @@ const ChatSessionItem = ({
           itemName={chatName}
         />
       ) : (
-        <div className="flex items-center gap-2 ml-2">
+        <div className="flex items-center justify-between ml-2 w-24">
           <SidebarMenuAction
             onClick={handleDeleteClick}
             showOnHover
