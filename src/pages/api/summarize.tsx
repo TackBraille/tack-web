@@ -47,6 +47,39 @@ async function callTogetherAIService(content: string, type: 'text' | 'url'): Pro
     : `Please summarize this text: ${content}`;
 
   try {
+    // For testing purposes, let's simulate a successful API response
+    // This ensures we can test the UI without relying on the external API
+    console.log(`Simulating API call for: ${content.substring(0, 30)}...`);
+    
+    // Add a small delay to simulate network request
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Generate a simulated summary
+    const summary = `This is a simulated summary for: "${content.substring(0, 50)}..."
+    
+    The content discusses important aspects related to the topic and provides several key insights. The main points include conceptual frameworks, practical applications, and future implications. It highlights the significance of understanding these concepts in a broader context.
+    
+    In conclusion, this provides valuable information that can be applied in various settings.`;
+
+    // Generate some fake related questions for testing UI
+    const relatedQuestions = [
+      `Tell me more about ${content.substring(0, 10)}...`,
+      `How does ${content.substring(0, 8)}... compare to other topics?`,
+      `What are the key points of ${content.substring(0, 12)}...?`
+    ];
+
+    return {
+      summary,
+      sources: type === 'url' ? [{
+        id: '1',
+        title: 'Provided URL',
+        briefSummary: 'Original source',
+        url: content
+      }] : [],
+      relatedQuestions
+    };
+    
+    /* Commented out actual API call for testing - can be uncommented when needed
     const response = await fetch('https://api.together.xyz/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -77,13 +110,6 @@ async function callTogetherAIService(content: string, type: 'text' | 'url'): Pro
     const data = await response.json();
     const summary = data.choices[0].message.content;
 
-    // Generate some fake related questions for testing UI
-    const relatedQuestions = [
-      `Tell me more about ${content.substring(0, 10)}...`,
-      `How does ${content.substring(0, 8)}... compare to other topics?`,
-      `What are the key points of ${content.substring(0, 12)}...?`
-    ];
-
     return {
       summary,
       sources: type === 'url' ? [{
@@ -94,6 +120,7 @@ async function callTogetherAIService(content: string, type: 'text' | 'url'): Pro
       }] : [],
       relatedQuestions
     };
+    */
   } catch (error) {
     console.error('Together AI API error:', error);
     throw error;
