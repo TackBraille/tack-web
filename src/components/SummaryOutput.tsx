@@ -7,6 +7,7 @@ import { readAloud } from '@/utils/summarizeUtils';
 import { toast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import SourceList from './SourceList';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SummaryOutputProps {
   data: SummaryType | null;
@@ -68,6 +69,13 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
     }
   };
 
+  // Display model used if available
+  const modelInfo = data.modelUsed ? (
+    <Badge variant="outline" className="ml-auto text-xs">
+      Model: {data.modelUsed}
+    </Badge>
+  ) : null;
+
   return (
     <>
       <section 
@@ -75,7 +83,10 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
         aria-labelledby="summary-section-title"
         aria-live="polite"
       >
-        <h2 id="summary-section-title" className="text-xl font-semibold mb-3">AI Response</h2>
+        <div className="flex items-center mb-3">
+          <h2 id="summary-section-title" className="text-xl font-semibold">AI Response</h2>
+          {modelInfo}
+        </div>
         
         <div className="bg-card shadow-sm border rounded-lg p-6 animate-slide-up">
           {data.loading ? (
@@ -94,43 +105,61 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
               </div>
               
               <div className="flex flex-wrap gap-2 mt-4">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className={`gap-2 ${isReading ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'} transition-colors`}
-                  onClick={handleReadAloud}
-                  aria-label={isReading ? "Stop reading aloud" : "Read summary aloud using text-to-speech"}
-                >
-                  <Volume size={16} aria-hidden="true" />
-                  <span>{isReading ? "Stop Reading" : "Read Aloud"}</span>
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className={`gap-2 ${isReading ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'} transition-colors`}
+                        onClick={handleReadAloud}
+                        aria-label={isReading ? "Stop reading aloud" : "Read summary aloud using text-to-speech"}
+                      >
+                        <Volume size={16} aria-hidden="true" />
+                        <span>{isReading ? "Stop Reading" : "Read Aloud"}</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{isReading ? "Stop text-to-speech" : "Read text aloud"}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-2 bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                  onClick={handleCopy}
-                  aria-label="Copy summary to clipboard"
-                >
-                  {copied ? (
-                    <>
-                      <Check size={16} aria-hidden="true" />
-                      <span>Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={16} aria-hidden="true" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2 bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                        onClick={handleCopy}
+                        aria-label="Copy summary to clipboard"
+                      >
+                        {copied ? (
+                          <>
+                            <Check size={16} aria-hidden="true" />
+                            <span>Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={16} aria-hidden="true" />
+                            <span>Copy</span>
+                          </>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy to clipboard</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </>
           )}
         </div>
       </section>
       
-      {/* Display sources in a separate component */}
+      {/* Display sources with the enhanced SourceList component */}
       {data?.sources && data.sources.length > 0 && (
         <SourceList sources={data.sources} loading={data.loading} />
       )}
