@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { SummaryOutput } from '@/types';
-import { summarizeContent } from '@/utils/summarizeUtils';
+import { summarizeContent } from '@/utils/summarize';
 import { toast } from '@/components/ui/use-toast';
 import { getCurrentModel, getCurrentSubModel } from '@/utils/modelUtils';
 

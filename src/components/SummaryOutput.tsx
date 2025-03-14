@@ -3,7 +3,7 @@ import React from 'react';
 import { SummaryOutput as SummaryType } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Volume, Copy, Check } from 'lucide-react';
-import { readAloud } from '@/utils/summarizeUtils';
+import { readAloud } from '@/utils/summarize/speechUtils';
 import { toast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import SourceList from './SourceList';

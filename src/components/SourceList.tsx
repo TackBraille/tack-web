@@ -3,11 +3,11 @@ import React from 'react';
 import { Source } from '@/types';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Volume, FileText, Globe, Link, Book, University, Award, BookOpen } from 'lucide-react';
-import { readAloud } from '@/utils/summarizeUtils';
+import { readAloud } from '@/utils/summarize/speechUtils';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { extractDomain } from '@/utils/summarizeUtils';
+import { extractDomain } from '@/utils/summarize/domainUtils';
 import { toast } from '@/components/ui/use-toast';
 
 interface SourceListProps {

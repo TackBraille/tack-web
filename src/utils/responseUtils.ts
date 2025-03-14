@@ -62,7 +62,7 @@ export function extractRelatedQuestions(response: string): string[] {
     }
     
     // Third attempt: Split by newlines and look for question marks
-    const lineQuestions = questionText.split('\n')
+    const lineQuestions = questionText.split(/\n+/)
       .map(line => line.trim())
       .filter(line => line.length > 0 && line.includes('?'));
     
