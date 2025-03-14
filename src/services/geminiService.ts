@@ -39,8 +39,8 @@ export function mapToGeminiModel(modelId?: string): string {
  */
 export function createPrompt(content: string, type: 'text' | 'url'): string {
   return type === 'url' 
-    ? `Please summarize the content from this URL: ${content}. This app is for visually impaired users, so provide direct, factual, and concise answers without summarizing the question back. For date or time questions, give the actual date/time information. Include 3 relevant follow-up questions that are very brief.`
-    : `Please answer this question directly: ${content}. This app is for visually impaired users, so provide direct, factual, and concise answers without summarizing the question back. For date or time questions, give the actual date/time information. Include 3 relevant follow-up questions that are very brief.`;
+    ? `Please summarize the content from this URL: ${content}. This app is for visually impaired users, so provide direct, factual, and concise answers without summarizing the question back. For date or time questions, give the actual date/time information. Include only 1 relevant follow-up question that is very brief.`
+    : `Please answer this question directly: ${content}. This app is for visually impaired users, so provide direct, factual, and concise answers without summarizing the question back. For date or time questions, give the actual date/time information. Include only 1 relevant follow-up question that is very brief.`;
 }
 
 /**

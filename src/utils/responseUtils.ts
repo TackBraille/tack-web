@@ -36,6 +36,7 @@ export function extractSummary(response: string): string {
 
 /**
  * Helper function to extract related questions from LLM response
+ * Modified to return only a single most relevant question
  */
 export function extractRelatedQuestions(response: string): string[] {
   const questionsMatch = response.match(/Related Questions:([\s\S]*)/i);
@@ -47,15 +48,20 @@ export function extractRelatedQuestions(response: string): string[] {
       .map(q => q.trim())
       .filter(q => q.length > 0);
     
+    // Return only the first question if available
     if (questions.length > 0) {
-      return questions;
+      return [questions[0]];
     }
     
     // Fallback to splitting by newlines
-    return questionText.split('\n')
+    const lineQuestions = questionText.split('\n')
       .map(line => line.trim().replace(/^[•\-*]\s+/, ''))
-      .filter(line => line.length > 0 && line.endsWith('?'))
-      .slice(0, 3);
+      .filter(line => line.length > 0 && line.endsWith('?'));
+    
+    // Return only the first question if available
+    if (lineQuestions.length > 0) {
+      return [lineQuestions[0]];
+    }
   }
   
   // Fallback: Look for question marks in the text
@@ -64,7 +70,8 @@ export function extractRelatedQuestions(response: string): string[] {
     .map(match => match[0].trim())
     .filter(q => q.length > 10 && q.length < 100);
   
-  return allQuestions.slice(0, 3);
+  // Return only the first question if available
+  return allQuestions.length > 0 ? [allQuestions[0]] : [];
 }
 
 /**
@@ -74,11 +81,9 @@ export function generateFallbackContent(content: string, type: 'text' | 'url'): 
   // More helpful fallback for visually impaired users
   const summary = `Unable to generate an answer right now. The AI service is currently unavailable. Please try again in a few moments.`;
 
-  // Simple related questions for fallback
+  // Simple related questions for fallback - only one question
   const relatedQuestions = [
-    `Try again?`,
-    `Check your internet connection?`,
-    `Try a different query?`
+    `Try again?`
   ];
 
   return {
