@@ -12,7 +12,6 @@ import {
   updateChatSession
 } from '@/utils/chatSessionUtils';
 import { toast } from '@/components/ui/use-toast';
-import { exportChatAsText } from '@/utils/exportUtils';
 
 export function useChatSessions() {
   const [summaryData, setSummaryData] = useState<SummaryOutput | null>(null);
@@ -77,35 +76,6 @@ export function useChatSessions() {
     });
   }, [chatSessions, currentSessionId, handleNewChat, handleSelectSession]);
 
-  const handleRenameSession = useCallback((sessionId: string, newTitle: string) => {
-    // Update in local storage
-    const updatedSession = updateChatSession(sessionId, { title: newTitle });
-    
-    // Update state
-    if (updatedSession) {
-      setChatSessions(prevSessions => 
-        prevSessions.map(session => 
-          session.id === sessionId ? updatedSession : session
-        )
-      );
-      
-      toast({
-        title: "Chat renamed",
-        description: `Chat renamed to "${newTitle}".`,
-      });
-    }
-  }, []);
-
-  const handleExportSession = useCallback((sessionId: string) => {
-    const session = chatSessions.find(s => s.id === sessionId);
-    if (!session) return;
-    
-    const sessionTitle = session.title || `Chat ${chatSessions.indexOf(session) + 1}`;
-    const sessionHistory = getSessionHistory(sessionId);
-    
-    exportChatAsText(sessionTitle, sessionHistory);
-  }, [chatSessions]);
-
   const handleReset = useCallback(() => {
     setSummaryData(null);
     setHistory([]);
@@ -144,8 +114,6 @@ export function useChatSessions() {
     handleNewChat,
     handleSelectSession,
     handleDeleteSession,
-    handleRenameSession,
-    handleExportSession,
     handleReset,
     updateSessionAfterResponse
   };

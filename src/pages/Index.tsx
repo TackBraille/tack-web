@@ -20,8 +20,6 @@ const Index = () => {
     handleNewChat,
     handleSelectSession,
     handleDeleteSession,
-    handleRenameSession,
-    handleExportSession,
     handleReset,
     updateSessionAfterResponse
   } = useChatSessions();
@@ -62,8 +60,6 @@ const Index = () => {
             onNewChat={handleNewChat}
             onSelectSession={handleSelectSession}
             onDeleteSession={handleDeleteSession}
-            onRenameSession={handleRenameSession}
-            onExportSession={handleExportSession}
             history={history}
             setHistory={setHistory}
           />

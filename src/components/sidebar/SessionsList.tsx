@@ -11,8 +11,6 @@ interface SessionsListProps {
   currentSession?: string;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
-  onRenameSession: (sessionId: string) => void;
-  onExportSession: (sessionId: string) => void;
   filteredSessions?: ChatSession[];
   isSearching?: boolean;
 }
@@ -22,8 +20,6 @@ const SessionsList = ({
   currentSession,
   onSelectSession,
   onDeleteSession,
-  onRenameSession,
-  onExportSession,
   filteredSessions,
   isSearching = false,
 }: SessionsListProps) => {
@@ -44,8 +40,6 @@ const SessionsList = ({
               isActive={currentSession === session.id}
               onSelect={() => onSelectSession(session.id)}
               onDelete={() => onDeleteSession(session.id)}
-              onRename={onRenameSession}
-              onExport={onExportSession}
             />
           ))
         ) : (

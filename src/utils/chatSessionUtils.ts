@@ -132,19 +132,9 @@ export const saveSessionHistory = (sessionId: string, history: SummaryOutput[]):
     const session = sessions.find(s => s.id === sessionId);
     
     if (session) {
-      // If this is the first message and there's no title, use the first few words as the title
-      if (history.length === 1 && !session.title && history[0].originalQuery) {
-        const words = history[0].originalQuery.split(' ');
-        const title = words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
-        updateChatSession(sessionId, { 
-          updatedAt: new Date(),
-          title
-        });
-      } else {
-        updateChatSession(sessionId, { 
-          updatedAt: new Date()
-        });
-      }
+      updateChatSession(sessionId, { 
+        updatedAt: new Date()
+      });
     }
   } catch (error) {
     console.error(`Error saving history for session ${sessionId}:`, error);

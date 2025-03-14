@@ -15,7 +15,6 @@ import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import SessionsList from './SessionsList';
 import SearchBox from './SearchBox';
-import RenameDialog from './RenameDialog';
 import { useTheme } from 'next-themes';
 
 interface ChatHistorySidebarProps {
@@ -24,8 +23,6 @@ interface ChatHistorySidebarProps {
   onNewChat: () => void;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
-  onRenameSession: (sessionId: string, newTitle: string) => void;
-  onExportSession: (sessionId: string) => void;
   history: SummaryOutput[];
   setHistory: React.Dispatch<React.SetStateAction<SummaryOutput[]>>;
 }
@@ -36,39 +33,19 @@ const ChatHistorySidebar = ({
   onNewChat,
   onSelectSession,
   onDeleteSession,
-  onRenameSession,
-  onExportSession,
   history,
   setHistory,
 }: ChatHistorySidebarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [renameSessionId, setRenameSessionId] = useState<string | null>(null);
   const { theme, setTheme } = useTheme();
-  
-  const currentSessionTitle = currentSession 
-    ? sessions.find(s => s.id === currentSession)?.title || "Untitled Chat" 
-    : "Untitled Chat";
 
   const filteredSessions = sessions.filter(session => {
-    const sessionTitle = session.title || `Chat ${sessions.indexOf(session) + 1}`;
+    const sessionTitle = `Chat ${sessions.indexOf(session) + 1}`;
     return sessionTitle.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-  };
-
-  const handleRenameClick = (sessionId: string) => {
-    setRenameSessionId(sessionId);
-  };
-
-  const handleRenameSession = (sessionId: string, newTitle: string) => {
-    onRenameSession(sessionId, newTitle);
-    setRenameSessionId(null);
-  };
-
-  const handleCloseRename = () => {
-    setRenameSessionId(null);
   };
 
   const toggleTheme = () => {
@@ -115,8 +92,6 @@ const ChatHistorySidebar = ({
             currentSession={currentSession}
             onSelectSession={onSelectSession}
             onDeleteSession={onDeleteSession}
-            onRenameSession={handleRenameClick}
-            onExportSession={onExportSession}
             filteredSessions={filteredSessions}
             isSearching={searchQuery.length > 0}
           />
@@ -152,16 +127,6 @@ const ChatHistorySidebar = ({
           )}
         </div>
       </SidebarFooter>
-
-      {renameSessionId && (
-        <RenameDialog
-          isOpen={!!renameSessionId}
-          sessionId={renameSessionId}
-          currentTitle={sessions.find(s => s.id === renameSessionId)?.title || `Chat ${sessions.findIndex(s => s.id === renameSessionId) + 1}`}
-          onRename={handleRenameSession}
-          onClose={handleCloseRename}
-        />
-      )}
     </Sidebar>
   );
 };
