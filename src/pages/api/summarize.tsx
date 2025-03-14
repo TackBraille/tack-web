@@ -7,6 +7,7 @@ import {
   extractRelatedQuestions,
   generateFallbackContent
 } from '@/utils/responseUtils';
+import { extractDomain } from '@/utils/summarize/domainUtils';
 
 /**
  * API route handler for summarizing content
@@ -91,56 +92,66 @@ async function callGeminiService(
  */
 function generateRelevantSources(query: string, type: 'text' | 'url'): any[] {
   if (type === 'url') {
+    // For URL queries, create a nicely formatted source entry
     return [{
       id: '1',
       title: 'Provided URL',
-      briefSummary: 'Primary source of information that was analyzed',
+      briefSummary: 'Primary source content that was analyzed to generate the response.',
       url: query
     }];
   }
   
-  // For text queries, generate more accurate-looking sources
+  // For text queries, generate relevant sources based on the content
   const sources = [];
   const lowerQuery = query.toLowerCase();
   
-  // Check for university-related queries
-  if (lowerQuery.includes('university') || lowerQuery.includes('college') || lowerQuery.includes('school') || lowerQuery.includes('asu')) {
+  // Check for university-related queries and prioritize them
+  if (lowerQuery.includes('university') || lowerQuery.includes('college') || 
+      lowerQuery.includes('school') || lowerQuery.includes('asu') || 
+      lowerQuery.includes('arizona state')) {
+    
+    // Extract university name from the query
     const uniName = extractUniversityName(lowerQuery);
     
     if (uniName) {
-      // Official university website
+      // Add official university website as primary source
       sources.push({
         id: '1',
-        title: `${uniName.toUpperCase()} Official Website`,
-        briefSummary: `Official information about academics, admissions, campus life, and rankings at ${uniName.toUpperCase()}.`,
+        title: `${uniName} Official Website`,
+        briefSummary: `Official information about academics, admissions, campus life, and rankings at ${uniName}.`,
         url: determineUniversityUrl(uniName)
       });
       
-      // US News ranking
+      // Add rankings source
       sources.push({
         id: '2',
         title: 'U.S. News & World Report College Rankings',
-        briefSummary: `Comprehensive ranking data for ${uniName.toUpperCase()} including academic reputation, selectivity, and student outcomes.`,
+        briefSummary: `Comprehensive ranking data for ${uniName} including academic reputation, selectivity, and student outcomes.`,
         url: `https://www.usnews.com/best-colleges/search?q=${encodeURIComponent(uniName)}`
       });
       
-      // Academic research
+      // Add academic research source
       sources.push({
         id: '3',
         title: 'Times Higher Education World University Rankings',
-        briefSummary: `Global performance tables that judge research-intensive universities across all their core missions: teaching, research, knowledge transfer and international outlook.`,
+        briefSummary: `Global performance assessment of ${uniName} across teaching, research, knowledge transfer and international outlook.`,
         url: `https://www.timeshighereducation.com/world-university-rankings/search?q=${encodeURIComponent(uniName)}`
       });
-    } else {
-      // Generic university sources
+      
+      // Add Wikipedia source for general information
       sources.push({
-        id: '1',
-        title: 'U.S. News & World Report College Rankings',
-        briefSummary: 'Comprehensive university rankings based on academic quality indicators.',
-        url: 'https://www.usnews.com/best-colleges'
+        id: '4',
+        title: `${uniName} - Wikipedia`,
+        briefSummary: `Comprehensive reference on ${uniName} with detailed information on history, structure, and notable aspects.`,
+        url: `https://en.wikipedia.org/wiki/${encodeURIComponent(uniName.replace(/\s+/g, '_'))}`
       });
+      
+      return sources;
     }
-  } else if (lowerQuery.includes('history') || lowerQuery.includes('when') || lowerQuery.includes('past')) {
+  }
+  
+  // For other query types, continue with the existing categorization logic
+  if (lowerQuery.includes('history') || lowerQuery.includes('when') || lowerQuery.includes('past')) {
     // History-related sources
     sources.push({
       id: '1',
@@ -187,13 +198,15 @@ function generateRelevantSources(query: string, type: 'text' | 'url'): any[] {
     });
   }
   
-  // Always include Wikipedia as a general reference
-  sources.push({
-    id: sources.length + 1 + '',
-    title: 'Wikipedia',
-    briefSummary: `Comprehensive reference on "${query}" with detailed information on history, structure, and notable aspects.`,
-    url: `https://en.wikipedia.org/wiki/${encodeURIComponent(query.replace(/\s+/g, '_'))}`
-  });
+  // Add Wikipedia as a general reference if not already added
+  if (!sources.some(s => s.title.includes('Wikipedia'))) {
+    sources.push({
+      id: sources.length + 1 + '',
+      title: 'Wikipedia',
+      briefSummary: `Comprehensive reference on "${query}" with detailed information.`,
+      url: `https://en.wikipedia.org/wiki/${encodeURIComponent(query.replace(/\s+/g, '_'))}`
+    });
+  }
   
   // For general educational/academic queries, include Google Scholar
   sources.push({
@@ -210,22 +223,24 @@ function generateRelevantSources(query: string, type: 'text' | 'url'): any[] {
  * Extract university name from query
  */
 function extractUniversityName(query: string): string | null {
-  // Check for ASU specifically
+  // Special case for ASU
   if (query.includes('asu') || query.includes('arizona state')) {
     return 'Arizona State University';
   }
   
   // Extract other university names
   const uniPatterns = [
-    /university of ([a-z ]+)/,
-    /([a-z ]+) university/,
-    /([a-z ]+) college/
+    /university of ([a-z ]+)/i,
+    /([a-z ]+) university/i,
+    /([a-z ]+) college/i
   ];
   
   for (const pattern of uniPatterns) {
     const match = query.match(pattern);
     if (match && match[1]) {
-      return match[1].trim();
+      return match[1].trim().split(' ').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
     }
   }
   
@@ -236,23 +251,36 @@ function extractUniversityName(query: string): string | null {
  * Determine the correct university URL
  */
 function determineUniversityUrl(uniName: string): string {
+  const normalizedName = uniName.toLowerCase();
+  
   // Special cases for specific universities
-  if (uniName.toLowerCase().includes('arizona state')) {
+  if (normalizedName.includes('arizona state')) {
     return 'https://www.asu.edu/';
   }
   
-  // Convert the university name to a likely domain
-  const simplifiedName = uniName.toLowerCase()
+  if (normalizedName.includes('mit') || normalizedName === 'massachusetts institute of technology') {
+    return 'https://www.mit.edu/';
+  }
+  
+  if (normalizedName.includes('harvard')) {
+    return 'https://www.harvard.edu/';
+  }
+  
+  if (normalizedName.includes('stanford')) {
+    return 'https://www.stanford.edu/';
+  }
+  
+  // Extract domain name from university name
+  const simplifiedName = normalizedName
     .replace(/university of /i, '')
     .replace(/ university/i, '')
     .replace(/ college/i, '')
-    .replace(/[^a-z0-9]/g, '');
+    .replace(/\s+/g, '');
   
-  // Try to guess the URL format
-  if (uniName.toLowerCase().startsWith('university of')) {
+  // Format based on whether it's "University of X" or "X University"
+  if (normalizedName.startsWith('university of')) {
     return `https://www.${simplifiedName}.edu/`;
   } else {
     return `https://www.${simplifiedName}.edu/`;
   }
 }
-

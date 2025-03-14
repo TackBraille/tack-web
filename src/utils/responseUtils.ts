@@ -1,4 +1,3 @@
-
 import { SummaryOutput, Source } from '@/types';
 
 /**
@@ -43,44 +42,39 @@ export function extractRelatedQuestions(response: string): string[] {
   if (questionsMatch && questionsMatch[1]) {
     const questionText = questionsMatch[1].trim();
     
-    // First attempt: Try to split by numbered list (1., 2., 3., etc.)
-    const numberedQuestions = questionText.split(/\d+\.\s+/)
-      .map(q => q.trim())
-      .filter(q => q.length > 0);
-    
-    if (numberedQuestions.length > 1) {
-      return numberedQuestions.slice(0, 6);
+    // First approach: Try to extract numbered questions (1. Question)
+    const numberedQuestionMatches = Array.from(questionText.matchAll(/\d+\.\s+([^\d\n]+)/g));
+    if (numberedQuestionMatches.length > 0) {
+      return numberedQuestionMatches
+        .map(match => match[1].trim())
+        .filter(q => q.length > 0 && !q.startsWith('Related Questions:'));
     }
     
-    // Second attempt: Try to split by bullet points (* or - or •)
-    const bulletQuestions = questionText.split(/[\*\-\•]\s+/)
-      .map(q => q.trim())
-      .filter(q => q.length > 0);
-    
-    if (bulletQuestions.length > 1) {
-      return bulletQuestions.slice(0, 6);
+    // Second approach: Try to extract bullet-pointed questions
+    const bulletQuestionMatches = Array.from(questionText.matchAll(/[\*\-\•]\s+([^\*\-\•\n]+)/g));
+    if (bulletQuestionMatches.length > 0) {
+      return bulletQuestionMatches
+        .map(match => match[1].trim())
+        .filter(q => q.length > 0);
     }
     
-    // Third attempt: Split by newlines and look for question marks
-    const lineQuestions = questionText.split(/\n+/)
+    // Third approach: Split by newlines and look for question marks
+    const lines = questionText.split('\n')
       .map(line => line.trim())
-      .filter(line => line.length > 0 && line.includes('?'));
+      .filter(line => line.length > 0 && !line.startsWith('Related Questions:'));
     
-    if (lineQuestions.length > 0) {
-      return lineQuestions.slice(0, 6);
+    if (lines.length > 0) {
+      // Remove any numbering or bullets that might remain
+      return lines.map(line => 
+        line.replace(/^\d+[\.\)]\s*/, '')
+           .replace(/^[\*\-\•]\s*/, '')
+           .trim()
+      );
     }
-    
-    // Last resort: Try to find questions directly in the text
-    const questionRegex = /(\b[^.!?]+\?)/g;
-    const allQuestions = Array.from(questionText.matchAll(questionRegex))
-      .map(match => match[0].trim())
-      .filter(q => q.length > 10 && q.length < 100);
-    
-    return allQuestions.slice(0, 6);
   }
   
   // Fallback: Look for question marks in the text
-  const questionRegex = /(\b[^.!?]+\?)/g;
+  const questionRegex = /([^.!?\n]+\?)/g;
   const allQuestions = Array.from(response.matchAll(questionRegex))
     .map(match => match[0].trim())
     .filter(q => q.length > 10 && q.length < 100);

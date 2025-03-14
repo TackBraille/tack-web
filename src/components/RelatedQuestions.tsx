@@ -11,10 +11,10 @@ const RelatedQuestions: React.FC<RelatedQuestionsProps> = ({ questions, onQuesti
   // Return null if there are no questions
   if (!questions || questions.length === 0) return null;
   
-  // Filter out any empty questions or non-string values
-  const validQuestions = questions.filter(q => 
-    typeof q === 'string' && q.trim().length > 0
-  );
+  // Filter out any empty questions or non-string values and clean up any remaining numbers or bullets
+  const validQuestions = questions
+    .filter(q => typeof q === 'string' && q.trim().length > 0)
+    .map(q => q.replace(/^\d+[\.\)]\s*/, '').replace(/^[\*\-\•]\s*/, '').trim());
   
   // Return null if there are no valid questions after filtering
   if (validQuestions.length === 0) return null;
@@ -34,11 +34,11 @@ const RelatedQuestions: React.FC<RelatedQuestionsProps> = ({ questions, onQuesti
           <button
             key={index}
             onClick={() => onQuestionClick(question)}
-            className="bg-secondary/50 hover:bg-secondary px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-1 text-left"
+            className="bg-secondary/50 hover:bg-secondary px-3 py-2 rounded-lg text-sm transition-colors flex items-start text-left"
             aria-label={`Add related question to input: ${question}`}
             role="listitem"
           >
-            {question}
+            <span>{question}</span>
           </button>
         ))}
       </div>
