@@ -39,7 +39,7 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
         Sources
       </h2>
       
-      <Card className="overflow-hidden border-muted">
+      <Card className="overflow-hidden border-muted max-h-[500px] md:max-h-[600px] overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center py-8" aria-live="polite">
             <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
@@ -48,8 +48,8 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
         ) : (
           <ul className="divide-y">
             {sources.map((source) => (
-              <li key={source.id} className="p-4 transition-colors hover:bg-accent/30">
-                <article aria-labelledby={`source-${source.id}-title`}>
+              <li key={source.id} className="p-5 transition-colors hover:bg-accent/30">
+                <article aria-labelledby={`source-${source.id}-title`} className="space-y-3">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -75,7 +75,7 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
                         </div>
                       )}
                       
-                      <p className="text-muted-foreground text-sm">{source.briefSummary}</p>
+                      <p className="text-muted-foreground text-base leading-relaxed mb-3">{source.briefSummary}</p>
                     </div>
                     
                     <div className="flex gap-2 ml-4 flex-shrink-0">

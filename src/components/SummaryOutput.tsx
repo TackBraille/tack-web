@@ -86,9 +86,9 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
   ) : null;
 
   return (
-    <>
+    <div className="flex flex-col space-y-6 pb-8">
       <section 
-        className="w-full max-w-3xl mx-auto mb-8"
+        className="w-full max-w-3xl mx-auto"
         aria-labelledby="summary-section-title"
         aria-live="polite"
       >
@@ -172,7 +172,7 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
       {data?.sources && data.sources.length > 0 && (
         <SourceList sources={data.sources} loading={data.loading} />
       )}
-    </>
+    </div>
   );
 };
 

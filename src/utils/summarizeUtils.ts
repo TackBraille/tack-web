@@ -44,7 +44,7 @@ export const summarizeContent = async (
       data.sources = [{
         id: '1',
         title: 'Provided URL',
-        briefSummary: 'Information from this website',
+        briefSummary: 'A detailed summary of the key information extracted from this website. Contains main facts, figures, and conclusions presented in the content.',
         url: content
       }];
     }
@@ -88,9 +88,35 @@ export const readAloud = (text: string): void => {
   // Cancel any ongoing speech
   window.speechSynthesis.cancel();
   
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 1.0;
-  utterance.pitch = 1.0;
+  // For long text, split it into manageable chunks
+  const maxChunkLength = 250; // Maximum characters per chunk
+  let textChunks = [];
+  
+  if (text.length > maxChunkLength) {
+    // Split on sentences to avoid cutting in the middle of sentences
+    const sentences = text.split(/(?<=\.|\?|\!)\s+/);
+    let currentChunk = "";
+    
+    for (const sentence of sentences) {
+      if ((currentChunk + sentence).length <= maxChunkLength) {
+        currentChunk += sentence + " ";
+      } else {
+        if (currentChunk) textChunks.push(currentChunk.trim());
+        currentChunk = sentence + " ";
+      }
+    }
+    
+    if (currentChunk) textChunks.push(currentChunk.trim());
+  } else {
+    textChunks = [text];
+  }
+  
+  const utterances = textChunks.map(chunk => {
+    const utterance = new SpeechSynthesisUtterance(chunk);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    return utterance;
+  });
   
   // Use a voice that's available - load voices if needed
   let voices = window.speechSynthesis.getVoices();
@@ -121,18 +147,32 @@ export const readAloud = (text: string): void => {
     
     // Use the first available voice from our preferences
     const selectedVoice = preferredVoices.find(v => v);
-    if (selectedVoice) utterance.voice = selectedVoice;
     
-    // Add error handling
-    utterance.onerror = (event) => {
-      console.error('Text-to-speech error:', event);
-      toast({
-        title: "Text-to-speech error",
-        description: "There was an error while reading the text aloud.",
-        variant: "destructive",
-      });
-    };
+    // Chain utterances to speak one after another
+    utterances.forEach((utterance, index) => {
+      if (selectedVoice) utterance.voice = selectedVoice;
+      
+      // Set up event handling for all except the last utterance
+      if (index < utterances.length - 1) {
+        utterance.onend = () => {
+          window.speechSynthesis.speak(utterances[index + 1]);
+        };
+      }
+      
+      // Add error handling to each utterance
+      utterance.onerror = (event) => {
+        console.error('Text-to-speech error:', event);
+        toast({
+          title: "Text-to-speech error",
+          description: "There was an error while reading the text aloud.",
+          variant: "destructive",
+        });
+      };
+    });
     
-    window.speechSynthesis.speak(utterance);
+    // Start speaking with the first utterance
+    if (utterances.length > 0) {
+      window.speechSynthesis.speak(utterances[0]);
+    }
   }
 };
