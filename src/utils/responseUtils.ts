@@ -41,30 +41,51 @@ export function extractRelatedQuestions(response: string): string[] {
   const questionsMatch = response.match(/Related Questions:([\s\S]*)/i);
   
   if (questionsMatch && questionsMatch[1]) {
-    // Try to split by numbered list (1., 2., 3., etc.)
     const questionText = questionsMatch[1].trim();
-    const questions = questionText.split(/\d+\.\s+/)
+    
+    // First attempt: Try to split by numbered list (1., 2., 3., etc.)
+    const numberedQuestions = questionText.split(/\d+\.\s+/)
       .map(q => q.trim())
       .filter(q => q.length > 0);
     
-    if (questions.length > 0) {
-      return questions.slice(0, 6); // Increase to get up to 6 questions
+    if (numberedQuestions.length > 1) {
+      return numberedQuestions.slice(0, 6);
     }
     
-    // Fallback to splitting by newlines
-    return questionText.split('\n')
-      .map(line => line.trim().replace(/^[•\-*]\s+/, ''))
-      .filter(line => line.length > 0 && line.endsWith('?'))
-      .slice(0, 6); // Increase to get up to 6 questions
+    // Second attempt: Try to split by bullet points (* or - or •)
+    const bulletQuestions = questionText.split(/[\*\-\•]\s+/)
+      .map(q => q.trim())
+      .filter(q => q.length > 0);
+    
+    if (bulletQuestions.length > 1) {
+      return bulletQuestions.slice(0, 6);
+    }
+    
+    // Third attempt: Split by newlines and look for question marks
+    const lineQuestions = questionText.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0 && line.includes('?'));
+    
+    if (lineQuestions.length > 0) {
+      return lineQuestions.slice(0, 6);
+    }
+    
+    // Last resort: Try to find questions directly in the text
+    const questionRegex = /(\b[^.!?]+\?)/g;
+    const allQuestions = Array.from(questionText.matchAll(questionRegex))
+      .map(match => match[0].trim())
+      .filter(q => q.length > 10 && q.length < 100);
+    
+    return allQuestions.slice(0, 6);
   }
   
   // Fallback: Look for question marks in the text
   const questionRegex = /(\b[^.!?]+\?)/g;
-  const allQuestions = [...response.matchAll(questionRegex)]
+  const allQuestions = Array.from(response.matchAll(questionRegex))
     .map(match => match[0].trim())
     .filter(q => q.length > 10 && q.length < 100);
   
-  return allQuestions.slice(0, 6); // Increase to get up to 6 questions
+  return allQuestions.slice(0, 6);
 }
 
 /**

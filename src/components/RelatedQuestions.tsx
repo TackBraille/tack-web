@@ -8,7 +8,16 @@ interface RelatedQuestionsProps {
 }
 
 const RelatedQuestions: React.FC<RelatedQuestionsProps> = ({ questions, onQuestionClick }) => {
+  // Return null if there are no questions
   if (!questions || questions.length === 0) return null;
+  
+  // Filter out any empty questions or non-string values
+  const validQuestions = questions.filter(q => 
+    typeof q === 'string' && q.trim().length > 0
+  );
+  
+  // Return null if there are no valid questions after filtering
+  if (validQuestions.length === 0) return null;
   
   return (
     <section className="w-full max-w-3xl mx-auto mb-8" aria-labelledby="related-questions-heading">
@@ -21,7 +30,7 @@ const RelatedQuestions: React.FC<RelatedQuestionsProps> = ({ questions, onQuesti
       </h2>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" role="list">
-        {questions.map((question, index) => (
+        {validQuestions.map((question, index) => (
           <button
             key={index}
             onClick={() => onQuestionClick(question)}
