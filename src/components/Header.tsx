@@ -57,7 +57,7 @@ const Header: React.FC = () => {
             <span aria-hidden="true" className="text-primary">I</span>nsight
           </h1>
           <p className="text-muted-foreground text-sm">
-            Accessible summarization & source analysis
+            AI-Powered Insights from Text and URLs
           </p>
         </div>
 
