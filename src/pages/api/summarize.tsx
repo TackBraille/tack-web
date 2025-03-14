@@ -17,8 +17,6 @@ export async function POST(request: Request) {
       );
     }
     
-    // Call the actual summarization service
-    // In a real implementation, you would call an external API
     const result = await callSummarizationService(content, type);
     
     return new Response(
@@ -35,30 +33,57 @@ export async function POST(request: Request) {
 }
 
 /**
- * Mock function to call summarization service
- * In a real implementation, this would call an external API
+ * Function to call Together AI summarization service
  */
 async function callSummarizationService(content: string, type: 'text' | 'url'): Promise<SummaryOutput> {
-  // Simulating API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  const TOGETHER_API_KEY = '78d84b5a9b94f0638bd4715a45b6cf229cfdd66eeed83c8d417d1d91fa792607'; // Your provided API key
   
-  // This is where you would call an external API like Perplexity API
-  // For now, we're returning mock data
-  return {
-    summary: `This is a summary of the ${type === 'url' ? 'URL' : 'text'} content: ${content.substring(0, 50)}...`,
-    sources: [
-      {
-        id: '1',
-        title: 'Example Source 1',
-        briefSummary: 'This is a sample source summary',
-        url: 'https://example.com/1'
+  const prompt = type === 'url' 
+    ? `Please summarize the content from this URL: ${content}`
+    : `Please summarize this text: ${content}`;
+
+  try {
+    const response = await fetch('https://api.together.xyz/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${TOGETHER_API_KEY}`,
+        'Content-Type': 'application/json',
       },
-      {
-        id: '2',
-        title: 'Example Source 2',
-        briefSummary: 'Another sample source summary',
-        url: 'https://example.com/2'
-      }
-    ]
-  };
+      body: JSON.stringify({
+        model: 'mistralai/Mixtral-8x7B-Instruct-v0.1', // Using Mixtral as an example model
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful AI that provides concise summaries.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 200, // Adjust based on desired summary length
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Together AI API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const summary = data.choices[0].message.content;
+
+    return {
+      summary,
+      sources: type === 'url' ? [{
+        id: '1',
+        title: 'Provided URL',
+        briefSummary: 'Original source',
+        url: content
+      }] : []
+    };
+  } catch (error) {
+    console.error('Together AI API error:', error);
+    throw error;
+  }
 }
