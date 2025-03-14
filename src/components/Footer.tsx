@@ -9,6 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface FooterProps {
   onReset: () => void;
@@ -83,6 +84,8 @@ const Footer: React.FC<FooterProps> = ({ onReset }) => {
         </div>
         
         <div className="flex gap-2 items-center">
+          <ThemeToggle />
+          
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
