@@ -20,8 +20,8 @@ export async function POST(request: Request) {
     // Log which model was requested
     console.log(`Model requested: ${model || 'default'}`);
     
-    // Use Anthropic API for summarization
-    const result = await callAnthropicService(content, type, model);
+    // Use OpenAI API for summarization
+    const result = await callOpenAIService(content, type, model);
     
     return new Response(
       JSON.stringify(result),
@@ -37,11 +37,11 @@ export async function POST(request: Request) {
 }
 
 /**
- * Function to call Anthropic Claude API for summarization
+ * Function to call OpenAI API for summarization
  */
-async function callAnthropicService(content: string, type: 'text' | 'url', modelId?: string): Promise<SummaryOutput> {
-  // This would normally be in an environment variable
-  const ANTHROPIC_API_KEY = 'sk-ant-api03-demo-key-for-testing';
+async function callOpenAIService(content: string, type: 'text' | 'url', modelId?: string): Promise<SummaryOutput> {
+  // Using the provided OpenAI API key
+  const OPENAI_API_KEY = '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';
   
   const prompt = type === 'url' 
     ? `Please summarize the content from this URL: ${content}. Include 3 related questions about the content.`
@@ -49,40 +49,44 @@ async function callAnthropicService(content: string, type: 'text' | 'url', model
 
   try {
     // Determine which model to use based on modelId
-    // Claude models: claude-3-opus-20240229, claude-3-sonnet-20240229, claude-3-haiku-20240307
-    const modelToUse = modelId === 'claude' 
-      ? 'claude-3-opus-20240229'
-      : 'claude-3-haiku-20240307'; // Default to faster model for other selections
+    // OpenAI models: gpt-4o, gpt-4o-mini
+    const modelToUse = modelId === 'chatgpt' 
+      ? 'gpt-4o' 
+      : 'gpt-4o-mini'; // Default to faster model for other selections
 
-    console.log(`Using Claude model: ${modelToUse}`);
+    console.log(`Using OpenAI model: ${modelToUse}`);
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: modelToUse,
-        max_tokens: 1000,
-        temperature: 0.7,
-        system: "You are a helpful AI that provides concise summaries. When asked to summarize, also include 3 related questions that would be valuable follow-ups.",
         messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful AI that provides concise summaries. When asked to summarize, also include 3 related questions that would be valuable follow-ups.'
+          },
           {
             role: 'user',
             content: prompt
           }
-        ]
+        ],
+        max_tokens: 1000,
+        temperature: 0.7,
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`Anthropic API request failed: ${response.status}`);
+      const errorData = await response.text();
+      console.error('OpenAI API error response:', errorData);
+      throw new Error(`OpenAI API request failed: ${response.status}`);
     }
 
     const data = await response.json();
-    const fullResponse = data.content[0].text;
+    const fullResponse = data.choices[0].message.content;
     
     // Parse the response to extract summary and related questions
     const summary = extractSummary(fullResponse);
@@ -99,7 +103,7 @@ async function callAnthropicService(content: string, type: 'text' | 'url', model
       relatedQuestions
     };
   } catch (error) {
-    console.error('Anthropic API error:', error);
+    console.error('OpenAI API error:', error);
     
     // If API fails, fall back to a simulated response
     console.log('Falling back to simulated response');
