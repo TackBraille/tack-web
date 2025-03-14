@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Source } from '@/types';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, VolumeUp } from 'lucide-react';
+import { ExternalLink, Volume } from 'lucide-react';
 import { readAloud } from '@/utils/summarizeUtils';
 
 interface SourceListProps {
@@ -57,7 +56,7 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
                         aria-label={`Read aloud source: ${source.title}`}
                         title="Read aloud"
                       >
-                        <VolumeUp size={18} />
+                        <Volume size={18} />
                       </Button>
                       
                       {source.url && (

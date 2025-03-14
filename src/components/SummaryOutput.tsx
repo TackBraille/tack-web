@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { SummaryOutput as SummaryType } from '@/types';
 import { Button } from '@/components/ui/button';
-import { VolumeUp, Copy, Check } from 'lucide-react';
+import { Volume, Copy, Check } from 'lucide-react';
 import { readAloud } from '@/utils/summarizeUtils';
 import { toast } from '@/components/ui/use-toast';
 
@@ -13,7 +12,6 @@ interface SummaryOutputProps {
 const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
   const [copied, setCopied] = React.useState(false);
 
-  // If there's no data, don't render anything
   if (!data || (!data.summary && !data.loading && !data.error)) {
     return null;
   }
@@ -77,7 +75,7 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
                 onClick={handleReadAloud}
                 aria-label="Read summary aloud"
               >
-                <VolumeUp size={16} />
+                <Volume size={16} />
                 <span>Read Aloud</span>
               </Button>
               
