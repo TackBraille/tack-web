@@ -36,12 +36,9 @@ const Index = () => {
     history
   });
 
-  // This function is kept but its behavior changes
-  // Now it just passes the related question to MainContent
-  // which will populate the input field
+  // This is now just a placeholder function as the actual functionality has moved to the MainContent component
   const handleRelatedQuestionClick = (question: string) => {
-    // We no longer auto-submit here, just pass the question
-    // MainContent will handle populating the input field
+    // MainContent now handles this functionality
   };
 
   return (

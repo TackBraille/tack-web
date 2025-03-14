@@ -23,7 +23,7 @@ const MainContent: React.FC<MainContentProps> = ({
   handleRelatedQuestionClick
 }) => {
   // Reference to the setInputContent function from InputSection
-  const setInputContentRef = useRef<(content: string) => void | null>(null);
+  const setInputContentRef = useRef<((content: string) => void) | null>(null);
   
   // Function to handle related question clicks
   const handleRelatedQuestion = (question: string) => {

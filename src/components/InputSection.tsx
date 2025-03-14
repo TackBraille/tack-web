@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mic, Globe, Send, Loader2, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,7 +8,7 @@ import { toast } from '@/components/ui/use-toast';
 interface InputSectionProps {
   onSubmit: (content: string, type: 'text' | 'url') => void;
   isLoading: boolean;
-  externalSetInputContent?: (content: string) => void; // New prop for external control
+  externalSetInputContent?: (setter: (content: string) => void) => void; // Updated prop type
 }
 
 const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, externalSetInputContent }) => {
@@ -33,9 +33,11 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
   };
 
   // Expose setInputContent to parent components
-  if (externalSetInputContent) {
-    externalSetInputContent(handleInputChange);
-  }
+  useEffect(() => {
+    if (externalSetInputContent) {
+      externalSetInputContent(handleInputChange);
+    }
+  }, [externalSetInputContent]);
 
   // Function to handle form submission
   const handleSubmit = (e: React.FormEvent) => {
