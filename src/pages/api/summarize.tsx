@@ -53,8 +53,8 @@ async function callGeminiService(
   modelId?: string
 ): Promise<SummaryOutput> {
   try {
-    // Create prompt for the AI model
-    const prompt = createPrompt(content, type, conversationHistory);
+    // Create prompt for the AI model, now passing model ID
+    const prompt = createPrompt(content, type, conversationHistory, modelId);
 
     // Call the Gemini API
     const data = await callGeminiApi(prompt, modelId);
@@ -75,7 +75,8 @@ async function callGeminiService(
         url: content
       }] : [],
       relatedQuestions,
-      originalQuery: content // Save original query for context
+      originalQuery: content, // Save original query for context
+      modelUsed: modelId || 'gemini' // Track which model was used
     };
   } catch (error) {
     console.error('Gemini API error:', error);

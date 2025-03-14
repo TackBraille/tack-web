@@ -7,15 +7,16 @@ import { getCurrentModel } from './modelUtils';
 export const summarizeContent = async (
   content: string, 
   type: 'text' | 'url',
-  history: SummaryOutput[] = []
+  history: SummaryOutput[] = [],
+  modelId?: string
 ): Promise<SummaryOutput> => {
   try {
-    const currentModel = getCurrentModel();
+    const currentModel = modelId || getCurrentModel();
     
     // Show loading toast
     toast({
       title: "Generating response",
-      description: "Please wait while we process your request...",
+      description: `Please wait while we process your request using ${currentModel}...`,
     });
     
     // Call our API endpoint

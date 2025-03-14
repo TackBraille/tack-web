@@ -6,6 +6,7 @@ export interface SummaryOutput {
   error?: string;
   relatedQuestions?: string[];
   originalQuery?: string; // Store the original query for context
+  modelUsed?: string; // Store which model was used for the response
 }
 
 export interface Source {

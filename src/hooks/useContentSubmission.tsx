@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { SummaryOutput } from '@/types';
 import { summarizeContent } from '@/utils/summarizeUtils';
 import { toast } from '@/components/ui/use-toast';
+import { getCurrentModel, getCurrentSubModel } from '@/utils/modelUtils';
 
 interface UseContentSubmissionProps {
   currentSessionId: string | null;
@@ -46,15 +47,20 @@ export function useContentSubmission({
         createNewSession();
       }
       
-      // Pass the current conversation history for context
-      const result = await summarizeContent(content, type, history);
+      // Get the currently selected model
+      const selectedModel = getCurrentModel();
+      const selectedSubModel = getCurrentSubModel();
+      const modelToUse = selectedSubModel || selectedModel;
+      
+      // Pass the current conversation history and model for context
+      const result = await summarizeContent(content, type, history, modelToUse);
       
       // Update the history and current session
       updateSessionAfterResponse({...result, originalQuery: content});
       
       toast({
         title: 'Response generated',
-        description: 'Your query has been successfully answered.',
+        description: `Your query has been successfully answered using ${selectedModel}.`,
       });
 
       // Announce to screen readers that content has loaded

@@ -1,5 +1,5 @@
 
-import { SummaryOutput, Source } from '@/types';
+import { SummaryOutput, Source, AIModel } from '@/types';
 
 const GEMINI_API_KEY = 'AIzaSyD38ovCCHVPectV46kPSqWI1Ehx2sfIrE4';
 
@@ -8,25 +8,27 @@ const GEMINI_API_KEY = 'AIzaSyD38ovCCHVPectV46kPSqWI1Ehx2sfIrE4';
  */
 export function mapToGeminiModel(modelId?: string): string {
   // By default we'll use gemini-2.0-flash as the fastest model
-  let geminiModel = 'gemini-2.0-flash';
+  let geminiModel = 'gemini-1.5-flash';
   
   // Model mapping based on user selection
   if (modelId) {
     switch(modelId) {
       case 'gemini':
-        geminiModel = 'gemini-2.0-flash';
+        geminiModel = 'gemini-1.5-flash';
         break;
       case 'mistral':
       case 'perplexity':
-        // For these models we'll use gemini-2.0-pro
-        geminiModel = 'gemini-2.0-pro';
+      case 'claude':
+      case 'llama':
+        // For these models we'll use gemini-1.5-pro
+        geminiModel = 'gemini-1.5-pro';
         break;
       case 'chatgpt':
         // For ChatGPT option we'll use the most powerful model
-        geminiModel = 'gemini-2.0-pro';
+        geminiModel = 'gemini-1.5-pro';
         break;
       default:
-        geminiModel = 'gemini-2.0-flash';
+        geminiModel = 'gemini-1.5-flash';
     }
   }
 
@@ -35,14 +37,19 @@ export function mapToGeminiModel(modelId?: string): string {
 }
 
 /**
- * Creates a prompt for the Gemini model based on content type
+ * Creates a prompt for the Gemini model based on content type and selected model
  */
-export function createPrompt(content: string, type: 'text' | 'url', conversationHistory: SummaryOutput[] = []): string {
+export function createPrompt(content: string, type: 'text' | 'url', conversationHistory: SummaryOutput[] = [], modelId?: string): string {
+  // Determine which model we're emulating
+  const modelEmulation = getModelEmulationInstructions(modelId);
+  
   // Application context for more helpful responses
   const appContext = `
     You are an AI assistant for an accessibility-focused application designed to help visually impaired users 
     access and understand web content. Your responses will be read aloud using text-to-speech technology, 
     so clarity and conciseness are essential. The user is interacting with a screen reader.
+    
+    ${modelEmulation}
   `;
   
   const guidelines = `
@@ -87,6 +94,30 @@ export function createPrompt(content: string, type: 'text' | 'url', conversation
     ${guidelines}
     
     Format your response with a clear answer followed by "Related Questions:" and then list 2-3 follow-up questions.`;
+  }
+}
+
+/**
+ * Get model-specific emulation instructions
+ */
+function getModelEmulationInstructions(modelId?: string): string {
+  if (!modelId || modelId === 'gemini') {
+    return "Respond as Gemini, Google's AI assistant.";
+  }
+  
+  switch(modelId) {
+    case 'chatgpt':
+      return "Emulate the behavior and response style of ChatGPT. Be helpful, harmless, and honest. Your answers should be comprehensive yet concise, showing a strong ability to understand and respond to complex queries with nuance.";
+    case 'claude':
+      return "Emulate Claude's calm, thoughtful, and slightly formal tone. Provide nuanced, balanced responses that consider multiple perspectives. Be particularly careful with sensitive topics and prioritize helpfulness and harmlessness.";
+    case 'mistral':
+      return "Emulate Mistral's direct and efficient response style. Provide factual, straightforward answers with minimal embellishment while maintaining accuracy and helpfulness.";
+    case 'perplexity':
+      return "Emulate Perplexity's focus on providing well-researched information. Your answers should emphasize factual accuracy, with clear information synthesis and balanced presentation of different viewpoints.";
+    case 'llama':
+      return "Emulate LLaMA's response style. Be conversational yet informative, with a good balance of technical detail and accessible explanation. Show versatility in handling both technical and general knowledge topics.";
+    default:
+      return "Respond as Gemini, Google's AI assistant.";
   }
 }
 
