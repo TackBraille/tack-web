@@ -1,8 +1,11 @@
+
 import React from 'react';
 import { Source } from '@/types';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Volume } from 'lucide-react';
 import { readAloud } from '@/utils/summarizeUtils';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 interface SourceListProps {
   sources: Source[];
@@ -26,7 +29,7 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
     >
       <h2 id="sources-section-title" className="text-xl font-semibold mb-3">Sources</h2>
       
-      <div className="bg-card shadow-sm border rounded-lg animate-slide-up">
+      <Card>
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
@@ -50,20 +53,22 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
                     
                     <div className="flex gap-2 ml-4">
                       <Button 
-                        variant="ghost" 
+                        variant="outline" 
                         size="icon"
                         onClick={() => handleReadAloudSource(source.title, source.briefSummary)}
                         aria-label={`Read aloud source: ${source.title}`}
                         title="Read aloud"
+                        className="bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors border-secondary-foreground/20"
                       >
                         <Volume size={18} />
                       </Button>
                       
                       {source.url && (
                         <Button 
-                          variant="ghost" 
+                          variant="outline" 
                           size="icon"
                           asChild
+                          className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors border-primary/20"
                         >
                           <a 
                             href={source.url} 
@@ -78,12 +83,18 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
                       )}
                     </div>
                   </div>
+                  
+                  {source.url && (
+                    <Badge variant="outline" className="mt-2">
+                      Source
+                    </Badge>
+                  )}
                 </article>
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </Card>
     </section>
   );
 };
