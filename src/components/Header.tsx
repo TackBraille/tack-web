@@ -1,21 +1,27 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { AIModel } from '@/types';
-import { AVAILABLE_MODELS, selectModel, getCurrentModel } from '@/utils/modelUtils';
+import { AVAILABLE_MODELS, selectModel, getCurrentModel, getCurrentSubModel } from '@/utils/modelUtils';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Settings } from 'lucide-react';
 
 const Header: React.FC = () => {
-  const [activeModel, setActiveModel] = React.useState<AIModel>(getCurrentModel());
-  const [isMobile, setIsMobile] = React.useState<boolean>(window.innerWidth < 768);
+  const [activeModel, setActiveModel] = useState<AIModel>(getCurrentModel());
+  const [activeSubModel, setActiveSubModel] = useState<string | null>(getCurrentSubModel());
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -29,14 +35,17 @@ const Header: React.FC = () => {
   const handleModelSelect = (modelId: AIModel) => {
     setActiveModel(modelId);
     selectModel(modelId);
+    
+    // Reset sub-model when model changes
+    const newModel = AVAILABLE_MODELS.find(m => m.id === modelId);
+    if (newModel?.subModels && newModel.subModels.length > 0) {
+      setActiveSubModel(newModel.subModels[0].id);
+    }
   };
 
-  // Use Enter key for accessibility
-  const handleKeyDown = (e: React.KeyboardEvent, modelId: AIModel) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleModelSelect(modelId);
-    }
+  const handleSubModelSelect = (subModelId: string) => {
+    setActiveSubModel(subModelId);
+    selectModel(activeModel, subModelId);
   };
 
   return (
@@ -56,48 +65,104 @@ const Header: React.FC = () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="gap-2">
-                {AVAILABLE_MODELS.find(m => m.id === activeModel)?.name || 'Select Model'}
-                <ChevronDown className="h-4 w-4" />
+                <Settings className="h-4 w-4" aria-hidden="true" />
+                <span>Models</span>
+                <ChevronDown className="h-4 w-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
-              <DropdownMenuRadioGroup value={activeModel} onValueChange={(value) => handleModelSelect(value as AIModel)}>
-                {AVAILABLE_MODELS.map((model) => (
-                  <DropdownMenuRadioItem
-                    key={model.id}
-                    value={model.id}
-                    className="cursor-pointer"
+              <DropdownMenuLabel>Select AI Model</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {AVAILABLE_MODELS.map((model) => (
+                <DropdownMenuSub key={model.id}>
+                  <DropdownMenuSubTrigger
+                    className={activeModel === model.id ? "bg-accent" : ""}
                   >
                     {model.name}
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      {model.description.substring(0, 20)}...
-                    </span>
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuRadioGroup 
+                      value={activeModel === model.id ? activeSubModel || "" : ""}
+                      onValueChange={handleSubModelSelect}
+                    >
+                      {model.subModels?.map((subModel) => (
+                        <DropdownMenuRadioItem
+                          key={subModel.id}
+                          value={subModel.id}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            if (activeModel !== model.id) {
+                              handleModelSelect(model.id);
+                            }
+                          }}
+                        >
+                          {subModel.name}
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            {subModel.description.substring(0, 20)}...
+                          </span>
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <div 
-            role="radiogroup" 
-            aria-labelledby="model-selection"
-            className="flex flex-wrap gap-2 justify-center"
-          >
-            <span id="model-selection" className="sr-only">Select AI model</span>
+          <div className="flex flex-col items-end gap-2">
+            <div 
+              role="radiogroup" 
+              aria-labelledby="model-selection"
+              className="flex flex-wrap gap-2 justify-center"
+            >
+              <span id="model-selection" className="sr-only">Select AI model</span>
+              
+              <ToggleGroup type="single" value={activeModel} onValueChange={(value) => value && handleModelSelect(value as AIModel)}>
+                {AVAILABLE_MODELS.map((model) => (
+                  <ToggleGroupItem
+                    key={model.id}
+                    value={model.id}
+                    aria-checked={activeModel === model.id}
+                    aria-label={`Use ${model.name} model: ${model.description}`}
+                    className={`transition-all duration-300 focus:ring-2`}
+                  >
+                    {model.name}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
             
-            <ToggleGroup type="single" value={activeModel} onValueChange={(value) => value && handleModelSelect(value as AIModel)}>
-              {AVAILABLE_MODELS.map((model) => (
-                <ToggleGroupItem
-                  key={model.id}
-                  value={model.id}
-                  aria-checked={activeModel === model.id}
-                  aria-label={`Use ${model.name} model: ${model.description}`}
-                  className={`transition-all duration-300 focus:ring-2`}
-                >
-                  {model.name}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+            {activeModel && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-xs h-7 px-2">
+                    {AVAILABLE_MODELS.find(m => m.id === activeModel)?.subModels?.find(s => s.id === activeSubModel)?.name || "Select variant"}
+                    <ChevronDown className="h-3 w-3 ml-1" aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Select model variant</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup 
+                    value={activeSubModel || ""}
+                    onValueChange={handleSubModelSelect}
+                  >
+                    {AVAILABLE_MODELS.find(m => m.id === activeModel)?.subModels?.map((subModel) => (
+                      <DropdownMenuRadioItem
+                        key={subModel.id}
+                        value={subModel.id}
+                        className="cursor-pointer"
+                      >
+                        {subModel.name}
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          {subModel.description}
+                        </span>
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         )}
       </div>

@@ -20,6 +20,13 @@ export interface ModelConfig {
   id: AIModel;
   name: string;
   description: string;
+  subModels?: SubModel[];
+}
+
+export interface SubModel {
+  id: string;
+  name: string;
+  description: string;
 }
 
 export type InputType = 'text' | 'url' | 'conversation';
