@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { MessageCircle, Trash2, Edit, Download } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 import { 
   SidebarMenuItem, 
   SidebarMenuButton,
@@ -69,7 +68,6 @@ const ChatSessionItem = ({
     });
   };
 
-  const formattedTime = formatDistanceToNow(new Date(session.updatedAt), { addSuffix: true });
   const chatName = session.title || `Chat ${index + 1}`;
 
   return (
@@ -77,15 +75,12 @@ const ChatSessionItem = ({
       <SidebarMenuButton 
         isActive={isActive}
         onClick={onSelect}
-        tooltip={`${chatName}, updated ${formattedTime}`}
-        aria-label={`Select ${chatName}, updated ${formattedTime}`}
+        tooltip={chatName}
+        aria-label={`Select ${chatName}`}
         aria-current={isActive ? 'page' : undefined}
       >
         <MessageCircle size={16} aria-hidden="true" />
         <span className="truncate max-w-[150px]">{chatName}</span>
-        <span className="ml-auto text-xs text-muted-foreground" aria-hidden="true">
-          {formattedTime}
-        </span>
       </SidebarMenuButton>
       
       {showDeleteConfirm ? (
@@ -95,7 +90,7 @@ const ChatSessionItem = ({
           itemName={chatName}
         />
       ) : (
-        <div className="flex items-center gap-1 ml-2">
+        <div className="flex items-center gap-2 ml-2">
           <SidebarMenuAction
             onClick={handleDeleteClick}
             showOnHover
