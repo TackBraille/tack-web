@@ -14,6 +14,7 @@ const Index = () => {
     summaryData,
     setSummaryData,
     history,
+    setHistory,  // Make sure this is exposed from useChatSessions
     chatSessions,
     currentSessionId,
     handleNewChat,

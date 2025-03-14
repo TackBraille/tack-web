@@ -28,6 +28,7 @@ import {
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
+import { toast } from '@/components/ui/use-toast';
 
 interface ChatHistorySidebarProps {
   sessions: ChatSession[];
@@ -51,6 +52,7 @@ const ChatHistorySidebar = ({
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [sessionToRename, setSessionToRename] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const handleRenameClick = (e: React.MouseEvent, sessionId: string, currentTitle: string) => {
     e.stopPropagation();
@@ -67,6 +69,28 @@ const ChatHistorySidebar = ({
       setSessionToRename(null);
       setNewTitle('');
     }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation();
+    setConfirmDeleteId(sessionId);
+  };
+
+  const confirmDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirmDeleteId) {
+      onDeleteSession(confirmDeleteId);
+      toast({
+        title: "Chat deleted",
+        description: "The chat has been removed from your history.",
+      });
+      setConfirmDeleteId(null);
+    }
+  };
+
+  const cancelDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConfirmDeleteId(null);
   };
 
   return (
@@ -100,30 +124,47 @@ const ChatHistorySidebar = ({
                         aria-current={currentSession === session.id ? 'page' : undefined}
                       >
                         <MessageCircle size={16} aria-hidden="true" />
-                        <span className="truncate">{session.title}</span>
+                        <span className="truncate max-w-[150px]">{session.title}</span>
                         <span className="ml-auto text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(session.updatedAt), { addSuffix: true })}
                         </span>
                       </SidebarMenuButton>
-                      <div className="flex items-center">
-                        <SidebarMenuAction
-                          onClick={(e) => handleRenameClick(e, session.id, session.title)}
-                          showOnHover
-                          aria-label={`Rename chat ${session.title}`}
-                        >
-                          <Pencil size={14} aria-hidden="true" />
-                        </SidebarMenuAction>
-                        <SidebarMenuAction
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteSession(session.id);
-                          }}
-                          showOnHover
-                          aria-label={`Delete chat ${session.title}`}
-                        >
-                          <Trash2 size={14} aria-hidden="true" />
-                        </SidebarMenuAction>
-                      </div>
+                      
+                      {confirmDeleteId === session.id ? (
+                        <div className="flex items-center gap-1">
+                          <SidebarMenuAction
+                            onClick={confirmDelete}
+                            aria-label="Confirm delete"
+                          >
+                            <Trash2 size={14} className="text-destructive" aria-hidden="true" />
+                          </SidebarMenuAction>
+                          <SidebarMenuAction
+                            onClick={cancelDelete}
+                            aria-label="Cancel delete"
+                          >
+                            <X size={14} aria-hidden="true" />
+                          </SidebarMenuAction>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <SidebarMenuAction
+                            onClick={(e) => handleRenameClick(e, session.id, session.title)}
+                            showOnHover
+                            className="p-1"
+                            aria-label={`Rename chat ${session.title}`}
+                          >
+                            <Pencil size={14} aria-hidden="true" />
+                          </SidebarMenuAction>
+                          <SidebarMenuAction
+                            onClick={(e) => handleDeleteClick(e, session.id)}
+                            showOnHover
+                            className="p-1"
+                            aria-label={`Delete chat ${session.title}`}
+                          >
+                            <Trash2 size={14} aria-hidden="true" />
+                          </SidebarMenuAction>
+                        </div>
+                      )}
                     </SidebarMenuItem>
                   ))
                 ) : (
@@ -153,7 +194,12 @@ const ChatHistorySidebar = ({
                 size="sm" 
                 variant="ghost" 
                 className="h-7 w-7 p-0" 
-                aria-label={currentSession ? "Close current chat" : "Close sidebar"}
+                onClick={() => {
+                  setHistory([]);
+                  onDeleteSession(currentSession);
+                  onNewChat();
+                }}
+                aria-label="Clear current chat"
               >
                 <X size={14} aria-hidden="true" />
               </Button>

@@ -63,6 +63,12 @@ export function useChatSessions() {
         setSummaryData(null);
       }
     }
+    
+    // Add toast notification for successful deletion
+    toast({
+      title: "Chat deleted",
+      description: "The chat has been removed from your history.",
+    });
   };
 
   const handleRenameSession = (sessionId: string, newTitle: string) => {
@@ -114,6 +120,7 @@ export function useChatSessions() {
     summaryData,
     setSummaryData,
     history,
+    setHistory, // Expose setHistory
     chatSessions,
     currentSessionId,
     handleNewChat,
