@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -38,6 +37,7 @@ interface ChatHistorySidebarProps {
   onDeleteSession: (sessionId: string) => void;
   onRenameSession?: (sessionId: string, newTitle: string) => void;
   history: SummaryOutput[];
+  setHistory: React.Dispatch<React.SetStateAction<SummaryOutput[]>>;
 }
 
 const ChatHistorySidebar = ({
@@ -48,6 +48,7 @@ const ChatHistorySidebar = ({
   onDeleteSession,
   onRenameSession,
   history,
+  setHistory,
 }: ChatHistorySidebarProps) => {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [sessionToRename, setSessionToRename] = useState<string | null>(null);

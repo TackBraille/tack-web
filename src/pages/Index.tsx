@@ -14,7 +14,7 @@ const Index = () => {
     summaryData,
     setSummaryData,
     history,
-    setHistory,  // Make sure this is exposed from useChatSessions
+    setHistory,
     chatSessions,
     currentSessionId,
     handleNewChat,
@@ -63,6 +63,7 @@ const Index = () => {
             onDeleteSession={handleDeleteSession}
             onRenameSession={handleRenameSession}
             history={history}
+            setHistory={setHistory}
           />
           
           <MainContent
