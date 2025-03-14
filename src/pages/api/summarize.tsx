@@ -8,7 +8,7 @@ import { SummaryOutput } from '@/types';
  */
 export async function POST(request: Request) {
   try {
-    const { content, type } = await request.json();
+    const { content, type, model } = await request.json();
     
     if (!content) {
       return new Response(
@@ -17,7 +17,10 @@ export async function POST(request: Request) {
       );
     }
     
-    const result = await callSummarizationService(content, type);
+    // Log which model was requested, but always use the same service for testing
+    console.log(`Model requested: ${model || 'default'}`);
+    
+    const result = await callTogetherAIService(content, type);
     
     return new Response(
       JSON.stringify(result),
@@ -34,8 +37,9 @@ export async function POST(request: Request) {
 
 /**
  * Function to call Together AI summarization service
+ * This will be used for all models during testing
  */
-async function callSummarizationService(content: string, type: 'text' | 'url'): Promise<SummaryOutput> {
+async function callTogetherAIService(content: string, type: 'text' | 'url'): Promise<SummaryOutput> {
   const TOGETHER_API_KEY = '78d84b5a9b94f0638bd4715a45b6cf229cfdd66eeed83c8d417d1d91fa792607'; // Your provided API key
   
   const prompt = type === 'url' 
@@ -73,6 +77,13 @@ async function callSummarizationService(content: string, type: 'text' | 'url'): 
     const data = await response.json();
     const summary = data.choices[0].message.content;
 
+    // Generate some fake related questions for testing UI
+    const relatedQuestions = [
+      `Tell me more about ${content.substring(0, 10)}...`,
+      `How does ${content.substring(0, 8)}... compare to other topics?`,
+      `What are the key points of ${content.substring(0, 12)}...?`
+    ];
+
     return {
       summary,
       sources: type === 'url' ? [{
@@ -80,7 +91,8 @@ async function callSummarizationService(content: string, type: 'text' | 'url'): 
         title: 'Provided URL',
         briefSummary: 'Original source',
         url: content
-      }] : []
+      }] : [],
+      relatedQuestions
     };
   } catch (error) {
     console.error('Together AI API error:', error);
