@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -132,7 +133,7 @@ const ChatHistorySidebar = ({
                       </SidebarMenuButton>
                       
                       {confirmDeleteId === session.id ? (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 ml-1">
                           <SidebarMenuAction
                             onClick={confirmDelete}
                             aria-label="Confirm delete"
@@ -147,7 +148,7 @@ const ChatHistorySidebar = ({
                           </SidebarMenuAction>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2 ml-1">
                           <SidebarMenuAction
                             onClick={(e) => handleRenameClick(e, session.id, session.title)}
                             showOnHover
