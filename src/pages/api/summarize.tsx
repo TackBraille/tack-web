@@ -43,9 +43,10 @@ async function callGeminiService(content: string, type: 'text' | 'url', modelId?
   // Using the provided Gemini API key
   const GEMINI_API_KEY = 'AIzaSyD38ovCCHVPectV46kPSqWI1Ehx2sfIrE4';
   
+  // Enhanced prompt for accessibility and conciseness
   const prompt = type === 'url' 
-    ? `Please summarize the content from this URL: ${content}. Include 3 related questions about the content.`
-    : `Please summarize this text: ${content}. Include 3 related questions about the content.`;
+    ? `Please summarize the content from this URL: ${content}. This app is for visually impaired users, so provide direct, factual, and concise answers without summarizing the question back. For date or time questions, give the actual date/time information. Include 3 relevant follow-up questions that are very brief.`
+    : `Please answer this question directly: ${content}. This app is for visually impaired users, so provide direct, factual, and concise answers without summarizing the question back. For date or time questions, give the actual date/time information. Include 3 relevant follow-up questions that are very brief.`;
 
   try {
     // Map requested model to appropriate Gemini model
@@ -84,8 +85,8 @@ async function callGeminiService(content: string, type: 'text' | 'url', modelId?
           parts: [{ text: prompt }]
         }],
         generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 1000,
+          temperature: 0.2, // Lower temperature for more direct answers
+          maxOutputTokens: 800,
         }
       }),
     });
@@ -126,17 +127,17 @@ async function callGeminiService(content: string, type: 'text' | 'url', modelId?
   } catch (error) {
     console.error('Gemini API error:', error);
     
-    // If API fails, fall back to a simulated response
+    // If API fails, fall back to a simulated response with more context
     console.log('Falling back to simulated response');
     
-    const summary = `Unable to generate a real-time summary for: "${content.substring(0, 50)}...". Using fallback content.
-    
-    This is a simulated fallback summary. The AI service may be temporarily unavailable or there might be issues with the API connection. Please try again later.`;
+    // More helpful fallback for visually impaired users
+    const summary = `Unable to generate an answer right now. The AI service is currently unavailable. Please try again in a few moments.`;
 
+    // Simple related questions for fallback
     const relatedQuestions = [
-      `What are the main points of ${content.substring(0, 10)}...?`,
-      `Can you explain more about ${content.substring(0, 8)}...?`,
-      `What are practical applications of ${content.substring(0, 12)}...?`
+      `Try again?`,
+      `Check your internet connection?`,
+      `Try a different query?`
     ];
 
     return {
