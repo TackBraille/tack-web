@@ -4,6 +4,7 @@ export interface SummaryOutput {
   sources: Source[];
   loading?: boolean;
   error?: string;
+  relatedQuestions?: string[];
 }
 
 export interface Source {

@@ -7,7 +7,7 @@ import { getCurrentModel } from './modelUtils';
 // In a real app, this would connect to the appropriate API
 export const summarizeContent = async (content: string, type: 'text' | 'url'): Promise<SummaryOutput> => {
   // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  await new Promise(resolve => setTimeout(resolve, 2000));
   
   try {
     const currentModel = getCurrentModel();
@@ -19,8 +19,42 @@ export const summarizeContent = async (content: string, type: 'text' | 'url'): P
       // For now, we'll just pretend we did
     }
     
-    // This is just mock data - in a real app this would come from the AI model
-    return mockSummarize(content, currentModel);
+    // In a real implementation, we would call the Perplexity API like:
+    /*
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-sonar-small-128k-online',
+        messages: [
+          {
+            role: 'system',
+            content: 'Provide a concise answer with relevant sources.'
+          },
+          {
+            role: 'user',
+            content: content
+          }
+        ],
+        temperature: 0.2,
+        top_p: 0.9,
+        max_tokens: 1000,
+        return_related_questions: true,
+        search_domain_filter: [],
+        search_recency_filter: 'month',
+        frequency_penalty: 1,
+        presence_penalty: 0
+      }),
+    });
+    
+    const data = await response.json();
+    */
+    
+    // This is just mock data - in a real app this would come from the Perplexity API
+    return mockPerplexitySummarize(content, currentModel);
   } catch (error) {
     console.error('Error summarizing content:', error);
     toast({
@@ -42,64 +76,98 @@ export const extractDomain = (url: string): string => {
   }
 };
 
-// Simulates AI summarization for demo purposes
-const mockSummarize = (content: string, model: AIModel): SummaryOutput => {
+// Simulates Perplexity AI summarization for demo purposes
+const mockPerplexitySummarize = (content: string, model: AIModel): SummaryOutput => {
   const isUrl = content.startsWith('http');
   
   let mockSummary: string;
   let mockSources: Source[];
+  let relatedQuestions: string[] = [];
   
   if (isUrl) {
     const domain = extractDomain(content);
-    mockSummary = `This page discusses key principles of accessible web design and their implementation in modern applications.`;
+    mockSummary = `Web accessibility refers to the inclusive practice of making websites usable by people of all abilities and disabilities. This includes providing semantic HTML structure, proper ARIA attributes, keyboard navigation, and ensuring content is perceivable by screen readers. The WCAG guidelines provide standards for creating accessible web content across four main principles: perceivable, operable, understandable, and robust.`;
     
     mockSources = [
       {
         id: '1',
-        title: `${domain} - Main Article`,
+        title: `${domain} - Web Accessibility Fundamentals`,
         briefSummary: "Accessibility principles for developers",
         url: content
       },
       {
         id: '2',
-        title: "Web Content Accessibility Guidelines",
-        briefSummary: "Official WCAG 2.1 standards",
+        title: "Web Content Accessibility Guidelines (WCAG) 2.1",
+        briefSummary: "Official accessibility standards",
         url: "https://www.w3.org/WAI/standards-guidelines/wcag/"
       },
       {
         id: '3',
-        title: "Aria Best Practices",
+        title: "MDN Web Docs: Accessibility",
+        briefSummary: "Mozilla's accessibility documentation",
+        url: "https://developer.mozilla.org/en-US/docs/Web/Accessibility"
+      },
+      {
+        id: '4',
+        title: "WAI-ARIA Authoring Practices",
         briefSummary: "Implementation patterns for accessibility",
         url: "https://www.w3.org/WAI/ARIA/apg/"
       }
     ];
+    
+    relatedQuestions = [
+      "What are the four main principles of WCAG?",
+      "How do I make images accessible to screen readers?",
+      "What is the difference between WCAG 2.0 and 2.1?",
+      "How can I test my website for accessibility issues?"
+    ];
   } else {
-    // For text input
+    // For text input - more like a chat query
     if (content.length < 30) {
-      mockSummary = `Query about ${content} suggests exploring aspects of this topic in relation to accessibility and web design.`;
+      mockSummary = `Web accessibility is about ensuring websites and applications are usable by people with disabilities, including those using screen readers, keyboard navigation, or other assistive technologies. Key practices include providing alternative text for images, ensuring proper color contrast, using semantic HTML, implementing ARIA attributes, and supporting keyboard navigation. Following the Web Content Accessibility Guidelines (WCAG) helps create inclusive web experiences that work for everyone.`;
     } else {
-      mockSummary = `The text discusses approaches to creating accessible web interfaces with semantic HTML and ARIA attributes.`;
+      mockSummary = `${content} relates to web accessibility, which is the practice of making websites usable by people with all abilities and disabilities. This includes providing semantic HTML structure with proper heading levels, descriptive alt text for images, sufficient color contrast, keyboard navigation support, and appropriate ARIA attributes when native HTML semantics aren't available. Screen readers and other assistive technologies rely on these implementations to provide usable experiences to users with disabilities.`;
     }
     
     mockSources = [
       {
         id: '1',
-        title: "Accessibility Fundamentals",
-        briefSummary: "Core concepts for developers",
-        url: "https://developer.mozilla.org/en-US/docs/Web/Accessibility"
+        title: "W3C Web Accessibility Initiative (WAI)",
+        briefSummary: "Standards and support resources",
+        url: "https://www.w3.org/WAI/"
       },
       {
         id: '2',
-        title: "Screen Reader Compatibility",
-        briefSummary: "Best practices for implementation",
-        url: "https://webaim.org/techniques/screenreader/"
+        title: "WebAIM: Web Accessibility In Mind",
+        briefSummary: "Practical accessibility resources",
+        url: "https://webaim.org/"
+      },
+      {
+        id: '3',
+        title: "The A11Y Project",
+        briefSummary: "Community-driven accessibility effort",
+        url: "https://www.a11yproject.com/"
+      },
+      {
+        id: '4',
+        title: "Deque University",
+        briefSummary: "Accessibility training and resources",
+        url: "https://dequeuniversity.com/"
       }
+    ];
+    
+    relatedQuestions = [
+      "What are the most common accessibility issues?",
+      "How do I make my forms accessible?",
+      "What tools can I use to test accessibility?",
+      "Are there keyboard shortcuts for accessibility testing?"
     ];
   }
   
   return {
     summary: mockSummary,
-    sources: mockSources
+    sources: mockSources,
+    relatedQuestions: relatedQuestions
   };
 };
 
