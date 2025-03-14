@@ -2,7 +2,7 @@
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import ChatHistorySidebar from '@/components/ChatHistorySidebar';
+import { ChatHistorySidebar } from '@/components/sidebar';
 import MainContent from '@/components/MainContent';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useChatSessions } from '@/hooks/useChatSessions';
