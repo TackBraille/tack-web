@@ -3,8 +3,6 @@ import React, { useState } from 'react';
 import { Mic, Globe, Send, Loader2, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { InputType } from '@/types';
 import { toast } from '@/components/ui/use-toast';
 
 interface InputSectionProps {
@@ -15,10 +13,10 @@ interface InputSectionProps {
 const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading }) => {
   const [inputContent, setInputContent] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [detectedType, setDetectedType] = useState<InputType>('text');
+  const [detectedType, setDetectedType] = useState<'text' | 'url'>('text');
 
   // Function to detect input type
-  const detectInputType = (content: string): InputType => {
+  const detectInputType = (content: string): 'text' | 'url' => {
     // Check if it's a URL
     if (content.match(/^https?:\/\//i)) {
       return 'url';
@@ -119,12 +117,15 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading }) => {
             />
             
             {/* Input type indicator */}
-            <div className="absolute top-2 right-2">
+            <div className="absolute top-2 right-2" aria-hidden="true">
               {detectedType === 'url' ? (
-                <Globe size={16} className="text-primary" aria-hidden="true" title="URL detected" />
+                <Globe size={16} className="text-primary" aria-hidden="true" />
               ) : (
-                <Type size={16} className="text-muted-foreground" aria-hidden="true" title="Text input" />
+                <Type size={16} className="text-muted-foreground" aria-hidden="true" />
               )}
+            </div>
+            <div className="sr-only" aria-live="polite">
+              {detectedType === 'url' ? 'URL detected' : 'Text input mode'}
             </div>
           </div>
 

@@ -2,9 +2,10 @@
 import React from 'react';
 import { SummaryOutput as SummaryType } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Volume, Copy, Check } from 'lucide-react';
+import { Volume, Copy, Check, ExternalLink } from 'lucide-react';
 import { readAloud } from '@/utils/summarizeUtils';
 import { toast } from '@/components/ui/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 interface SummaryOutputProps {
   data: SummaryType | null;
@@ -20,6 +21,10 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
   const handleReadAloud = () => {
     if (data.summary) {
       readAloud(data.summary);
+      toast({
+        title: "Reading aloud",
+        description: "Text-to-speech started. Click again to stop.",
+      });
     }
   };
 
@@ -54,8 +59,8 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
       
       <div className="bg-card shadow-sm border rounded-lg p-6 animate-slide-up">
         {data.loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+          <div className="flex items-center justify-center py-8" aria-live="assertive">
+            <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" aria-hidden="true"></div>
             <span className="ml-3 text-muted-foreground">Generating response...</span>
           </div>
         ) : data.error ? (
@@ -64,26 +69,37 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
           </div>
         ) : (
           <>
-            <div className="prose prose-zinc dark:prose-invert max-w-none mb-4" aria-label="Summary text">
+            <div className="prose prose-zinc dark:prose-invert max-w-none mb-4" aria-label="AI generated summary">
               <p className="text-lg leading-relaxed">{data.summary}</p>
               
               {data.sources && data.sources.length > 0 && (
                 <div className="border-t pt-4 mt-6">
                   <h3 className="text-base font-medium mb-2">Sources</h3>
-                  <ol className="list-decimal pl-5 space-y-1 text-sm text-muted-foreground">
+                  <ol className="list-decimal pl-5 space-y-2 text-sm">
                     {data.sources.map((source, index) => (
-                      <li key={source.id || index}>
-                        <a 
-                          href={source.url} 
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:underline text-primary"
-                        >
-                          {source.title}
-                        </a>
-                        {source.briefSummary && (
-                          <span className="ml-1 text-muted-foreground">— {source.briefSummary}</span>
-                        )}
+                      <li key={source.id || index} className="group">
+                        <div className="flex items-start gap-2">
+                          <div className="flex-1">
+                            <a 
+                              href={source.url} 
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:underline text-primary inline-flex items-center gap-1"
+                            >
+                              {source.title}
+                              <ExternalLink size={14} className="inline opacity-70" aria-hidden="true" />
+                              <span className="sr-only">(opens in new window)</span>
+                            </a>
+                            {source.briefSummary && (
+                              <p className="text-muted-foreground mt-1">{source.briefSummary}</p>
+                            )}
+                          </div>
+                          {source.url && (
+                            <Badge variant="outline" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              Source {index + 1}
+                            </Badge>
+                          )}
+                        </div>
                       </li>
                     ))}
                   </ol>
@@ -91,15 +107,15 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
               )}
             </div>
             
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-2 mt-4">
               <Button 
                 variant="outline" 
                 size="sm" 
                 className="gap-2"
                 onClick={handleReadAloud}
-                aria-label="Read summary aloud"
+                aria-label="Read summary aloud using text-to-speech"
               >
-                <Volume size={16} />
+                <Volume size={16} aria-hidden="true" />
                 <span>Read Aloud</span>
               </Button>
               
@@ -112,12 +128,12 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
               >
                 {copied ? (
                   <>
-                    <Check size={16} />
+                    <Check size={16} aria-hidden="true" />
                     <span>Copied</span>
                   </>
                 ) : (
                   <>
-                    <Copy size={16} />
+                    <Copy size={16} aria-hidden="true" />
                     <span>Copy</span>
                   </>
                 )}
