@@ -4,7 +4,11 @@ import { toast } from '@/components/ui/use-toast';
 import { getCurrentModel } from './modelUtils';
 
 // Function for real-time summarization using the backend API
-export const summarizeContent = async (content: string, type: 'text' | 'url'): Promise<SummaryOutput> => {
+export const summarizeContent = async (
+  content: string, 
+  type: 'text' | 'url',
+  history: SummaryOutput[] = []
+): Promise<SummaryOutput> => {
   try {
     const currentModel = getCurrentModel();
     
@@ -23,7 +27,8 @@ export const summarizeContent = async (content: string, type: 'text' | 'url'): P
       body: JSON.stringify({
         content,
         type,
-        model: currentModel
+        model: currentModel,
+        history
       }),
     });
     

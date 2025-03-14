@@ -37,7 +37,7 @@ export function mapToGeminiModel(modelId?: string): string {
 /**
  * Creates a prompt for the Gemini model based on content type
  */
-export function createPrompt(content: string, type: 'text' | 'url'): string {
+export function createPrompt(content: string, type: 'text' | 'url', conversationHistory: SummaryOutput[] = []): string {
   // Application context for more helpful responses
   const appContext = `
     You are an AI assistant for an accessibility-focused application designed to help visually impaired users 
@@ -53,9 +53,24 @@ export function createPrompt(content: string, type: 'text' | 'url'): string {
     5. Prioritize clarity and conciseness over conversational tone
     6. Include 2-3 relevant follow-up questions that the user might want to ask next
   `;
+
+  // Build conversation context from history
+  let conversationContext = '';
+  if (conversationHistory.length > 0) {
+    conversationContext = 'Previous conversation context:\n';
+    // Add up to last 3 exchanges to maintain context without making prompt too long
+    const recentHistory = conversationHistory.slice(-3);
+    recentHistory.forEach((item, index) => {
+      conversationContext += `[${index + 1}] User: ${item.originalQuery || 'Unknown query'}\n`;
+      conversationContext += `[${index + 1}] Assistant: ${item.summary}\n\n`;
+    });
+    conversationContext += 'Remember this conversation history when responding to the current query.\n\n';
+  }
   
   if (type === 'url') {
     return `${appContext}
+    
+    ${conversationContext}
     
     Please summarize the content from this URL: ${content}
     
@@ -64,6 +79,8 @@ export function createPrompt(content: string, type: 'text' | 'url'): string {
     Format your response with a clear summary followed by "Related Questions:" and then list 2-3 follow-up questions.`;
   } else {
     return `${appContext}
+    
+    ${conversationContext}
     
     Please answer this question directly: ${content}
     

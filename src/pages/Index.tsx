@@ -31,7 +31,8 @@ const Index = () => {
   const { isLoading, handleSubmit } = useContentSubmission({
     currentSessionId,
     createNewSession: handleNewChat,
-    updateSessionAfterResponse
+    updateSessionAfterResponse,
+    history
   });
 
   const handleRelatedQuestionClick = (question: string) => {

@@ -8,18 +8,20 @@ interface UseContentSubmissionProps {
   currentSessionId: string | null;
   createNewSession: () => void;
   updateSessionAfterResponse: (result: SummaryOutput) => void;
+  history: SummaryOutput[];
 }
 
 export function useContentSubmission({ 
   currentSessionId, 
   createNewSession, 
-  updateSessionAfterResponse 
+  updateSessionAfterResponse,
+  history
 }: UseContentSubmissionProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (content: string, type: 'text' | 'url') => {
     setIsLoading(true);
-    updateSessionAfterResponse({ summary: '', sources: [], loading: true });
+    updateSessionAfterResponse({ summary: '', sources: [], loading: true, originalQuery: content });
     
     try {
       // Create a new session if we don't have one
@@ -27,10 +29,11 @@ export function useContentSubmission({
         createNewSession();
       }
       
-      const result = await summarizeContent(content, type);
+      // Pass the current conversation history for context
+      const result = await summarizeContent(content, type, history);
       
       // Update the history and current session
-      updateSessionAfterResponse(result);
+      updateSessionAfterResponse({...result, originalQuery: content});
       
       toast({
         title: 'Response generated',
@@ -41,7 +44,8 @@ export function useContentSubmission({
       updateSessionAfterResponse({
         summary: '',
         sources: [],
-        error: 'Failed to generate response. Please try again.'
+        error: 'Failed to generate response. Please try again.',
+        originalQuery: content
       });
     } finally {
       setIsLoading(false);

@@ -5,6 +5,7 @@ export interface SummaryOutput {
   loading?: boolean;
   error?: string;
   relatedQuestions?: string[];
+  originalQuery?: string; // Store the original query for context
 }
 
 export interface Source {

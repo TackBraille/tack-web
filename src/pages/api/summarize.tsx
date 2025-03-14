@@ -15,7 +15,7 @@ import {
  */
 export async function POST(request: Request) {
   try {
-    const { content, type, model } = await request.json();
+    const { content, type, model, history = [] } = await request.json();
     
     if (!content) {
       return new Response(
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     console.log(`Model requested: ${model || 'default'}`);
     
     // Call the Gemini service for summarization
-    const result = await callGeminiService(content, type, model);
+    const result = await callGeminiService(content, type, history, model);
     
     return new Response(
       JSON.stringify(result),
@@ -46,10 +46,15 @@ export async function POST(request: Request) {
 /**
  * Function to call Gemini API for summarization
  */
-async function callGeminiService(content: string, type: 'text' | 'url', modelId?: string): Promise<SummaryOutput> {
+async function callGeminiService(
+  content: string, 
+  type: 'text' | 'url', 
+  conversationHistory: SummaryOutput[] = [],
+  modelId?: string
+): Promise<SummaryOutput> {
   try {
     // Create prompt for the AI model
-    const prompt = createPrompt(content, type);
+    const prompt = createPrompt(content, type, conversationHistory);
 
     // Call the Gemini API
     const data = await callGeminiApi(prompt, modelId);
@@ -69,7 +74,8 @@ async function callGeminiService(content: string, type: 'text' | 'url', modelId?
         briefSummary: 'Original source',
         url: content
       }] : [],
-      relatedQuestions
+      relatedQuestions,
+      originalQuery: content // Save original query for context
     };
   } catch (error) {
     console.error('Gemini API error:', error);
