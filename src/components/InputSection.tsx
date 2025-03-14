@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Mic, Globe, Send, Loader2, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,13 +8,14 @@ import { toast } from '@/components/ui/use-toast';
 interface InputSectionProps {
   onSubmit: (content: string, type: 'text' | 'url') => void;
   isLoading: boolean;
-  externalSetInputContent?: (setter: (content: string) => void) => void; // Updated prop type
+  externalSetInputContent?: (setter: (content: string) => void) => void;
 }
 
 const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, externalSetInputContent }) => {
   const [inputContent, setInputContent] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [detectedType, setDetectedType] = useState<'text' | 'url'>('text');
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   // Function to detect input type
   const detectInputType = (content: string): 'text' | 'url' => {
@@ -38,6 +39,20 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
       externalSetInputContent(handleInputChange);
     }
   }, [externalSetInputContent]);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    // Clean up on component unmount
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.abort();
+        recognitionRef.current = null;
+      }
+    };
+  }, []);
 
   // Function to handle form submission
   const handleSubmit = (e: React.FormEvent) => {
@@ -67,7 +82,9 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
 
   // Function to handle speech-to-text
   const toggleSpeechRecognition = () => {
-    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
       toast({
         title: "Speech recognition unavailable",
         description: "Your browser doesn't support speech recognition.",
@@ -77,7 +94,11 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
     }
 
     if (isListening) {
-      // Stop listening logic would go here
+      // Stop listening
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
       setIsListening(false);
       toast({
         title: "Voice input stopped",
@@ -86,25 +107,58 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
       return;
     }
 
-    // This is a mock implementation - in a real app we'd use the Web Speech API
-    setIsListening(true);
-    toast({
-      title: "Listening...",
-      description: "Speak now. Voice recognition is active.",
-    });
-
-    // Simulate receiving speech after 3 seconds
-    setTimeout(() => {
-      const mockRecognizedText = "How to implement accessible web applications using ARIA";
-      setInputContent(prevContent => 
-        prevContent + (prevContent ? ' ' : '') + mockRecognizedText
-      );
-      setIsListening(false);
+    // Start listening
+    try {
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+      
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0])
+          .map(result => result.transcript)
+          .join('');
+          
+        setInputContent(transcript);
+        setDetectedType(detectInputType(transcript));
+      };
+      
+      recognition.onend = () => {
+        setIsListening(false);
+        toast({
+          title: "Voice input ended",
+          description: "Speech recognition has finished.",
+        });
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(false);
+        toast({
+          title: "Voice input error",
+          description: `Error: ${event.error}`,
+          variant: "destructive",
+        });
+      };
+      
+      recognition.start();
+      setIsListening(true);
       toast({
-        title: "Voice input received",
-        description: "Your speech has been converted to text.",
+        title: "Listening...",
+        description: "Speak now. Voice recognition is active.",
       });
-    }, 3000);
+    } catch (error) {
+      console.error('Speech recognition error', error);
+      toast({
+        title: "Voice input error",
+        description: "Something went wrong with speech recognition.",
+        variant: "destructive",
+      });
+      setIsListening(false);
+    }
   };
 
   return (
@@ -123,7 +177,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
               className="min-h-32 mb-4 resize-y pr-10"
               value={inputContent}
               onChange={(e) => handleInputChange(e.target.value)}
-              disabled={isLoading || isListening}
+              disabled={isLoading}
             />
             
             {/* Input type indicator */}
