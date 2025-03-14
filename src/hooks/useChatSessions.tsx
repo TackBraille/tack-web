@@ -7,7 +7,6 @@ import {
   setCurrentSession, 
   createChatSession, 
   deleteChatSession,
-  renameChatSession,
   getSessionHistory,
   saveSessionHistory
 } from '@/utils/chatSessionUtils';
@@ -71,23 +70,6 @@ export function useChatSessions() {
     });
   };
 
-  const handleRenameSession = (sessionId: string, newTitle: string) => {
-    const updatedSession = renameChatSession(sessionId, newTitle);
-    if (updatedSession) {
-      setChatSessions(chatSessions.map(s => s.id === sessionId ? updatedSession : s));
-      toast({
-        title: "Chat renamed",
-        description: `Chat renamed to "${newTitle}"`,
-      });
-    } else {
-      toast({
-        title: "Rename failed",
-        description: "Failed to rename chat. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleReset = () => {
     setSummaryData(null);
     setHistory([]);
@@ -126,7 +108,6 @@ export function useChatSessions() {
     handleNewChat,
     handleSelectSession,
     handleDeleteSession,
-    handleRenameSession,
     handleReset,
     updateSessionAfterResponse
   };

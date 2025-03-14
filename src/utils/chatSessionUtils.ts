@@ -27,7 +27,7 @@ export const saveChatSessions = (sessions: ChatSession[]): void => {
 export const createChatSession = (firstQuery?: string): ChatSession => {
   const newSession: ChatSession = {
     id: uuidv4(),
-    title: firstQuery ? truncateTitle(firstQuery) : 'New Chat',
+    title: 'New Chat',
     createdAt: new Date(),
     updatedAt: new Date(),
     firstQuery
@@ -52,15 +52,6 @@ export const deleteChatSession = (sessionId: string): void => {
   if (getCurrentSession() === sessionId) {
     setCurrentSession(sessions.length > 0 ? sessions[0].id : null);
   }
-};
-
-// Rename a chat session
-export const renameChatSession = (sessionId: string, newTitle: string): ChatSession | null => {
-  if (!newTitle || newTitle.trim() === '') {
-    return null;
-  }
-  
-  return updateChatSession(sessionId, { title: newTitle.trim() });
 };
 
 // Update a chat session
@@ -118,10 +109,7 @@ export const saveSessionHistory = (sessionId: string, history: SummaryOutput[]):
   
   if (session) {
     updateChatSession(sessionId, { 
-      updatedAt: new Date(),
-      // Update title if it was "New Chat" and we now have content
-      title: session.title === 'New Chat' && history.length > 0 ? 
-        truncateTitle(history[0].summary) : session.title
+      updatedAt: new Date()
     });
   }
 };
