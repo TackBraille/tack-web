@@ -33,14 +33,33 @@ export async function GET(request: Request) {
     }));
     
     return new Response(
-      JSON.stringify(serializedSessions),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        success: true, 
+        data: serializedSessions,
+        message: 'Sessions retrieved successfully'
+      }),
+      { 
+        status: 200, 
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, max-age=0'
+        } 
+      }
     );
   } catch (error) {
     console.error('Error in sessions API:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
     return new Response(
-      JSON.stringify({ error: 'Failed to fetch sessions' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        success: false, 
+        error: 'Failed to fetch sessions',
+        message: errorMessage
+      }),
+      { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' } 
+      }
     );
   }
 }
@@ -52,7 +71,22 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   try {
-    const { title } = await request.json();
+    const body = await request.json();
+    const { title } = body;
+    
+    if (!title) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Validation error',
+          message: 'Title is required'
+        }),
+        { 
+          status: 400, 
+          headers: { 'Content-Type': 'application/json' } 
+        }
+      );
+    }
     
     // In a real implementation, you would create in a database
     // For now, we'll return mock data
@@ -71,14 +105,30 @@ export async function POST(request: Request) {
     };
     
     return new Response(
-      JSON.stringify(serializedSession),
-      { status: 201, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        success: true, 
+        data: serializedSession,
+        message: 'Session created successfully'
+      }),
+      { 
+        status: 201, 
+        headers: { 'Content-Type': 'application/json' } 
+      }
     );
   } catch (error) {
     console.error('Error in sessions API:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
     return new Response(
-      JSON.stringify({ error: 'Failed to create session' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        success: false, 
+        error: 'Failed to create session',
+        message: errorMessage
+      }),
+      { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' } 
+      }
     );
   }
 }

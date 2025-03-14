@@ -19,6 +19,7 @@ const Index = () => {
     handleNewChat,
     handleSelectSession,
     handleDeleteSession,
+    handleRenameSession,
     handleReset,
     updateSessionAfterResponse
   } = useChatSessions();
@@ -59,6 +60,7 @@ const Index = () => {
             onNewChat={handleNewChat}
             onSelectSession={handleSelectSession}
             onDeleteSession={handleDeleteSession}
+            onRenameSession={handleRenameSession}
             history={history}
           />
           

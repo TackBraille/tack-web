@@ -20,8 +20,25 @@ export function useContentSubmission({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (content: string, type: 'text' | 'url') => {
+    if (!content.trim()) {
+      toast({
+        title: "Empty query",
+        description: "Please enter a question or URL to analyze.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
-    updateSessionAfterResponse({ summary: '', sources: [], loading: true, originalQuery: content });
+    // Show loading state in the UI
+    updateSessionAfterResponse({ 
+      summary: '', 
+      sources: [], 
+      loading: true, 
+      originalQuery: content,
+      // Add a loading message that's accessible to screen readers
+      error: 'Loading response... Please wait.' 
+    });
     
     try {
       // Create a new session if we don't have one
@@ -39,6 +56,16 @@ export function useContentSubmission({
         title: 'Response generated',
         description: 'Your query has been successfully answered.',
       });
+
+      // Announce to screen readers that content has loaded
+      const announcement = document.getElementById('live-region');
+      if (announcement) {
+        announcement.textContent = 'Response loaded. New content is available.';
+        // Clear after announcement is read
+        setTimeout(() => {
+          announcement.textContent = '';
+        }, 1000);
+      }
     } catch (error) {
       console.error('Error generating summary:', error);
       updateSessionAfterResponse({
@@ -46,6 +73,12 @@ export function useContentSubmission({
         sources: [],
         error: 'Failed to generate response. Please try again.',
         originalQuery: content
+      });
+
+      toast({
+        title: 'Error',
+        description: 'Failed to generate a response. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);

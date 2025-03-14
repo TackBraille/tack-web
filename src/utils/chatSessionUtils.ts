@@ -54,6 +54,15 @@ export const deleteChatSession = (sessionId: string): void => {
   }
 };
 
+// Rename a chat session
+export const renameChatSession = (sessionId: string, newTitle: string): ChatSession | null => {
+  if (!newTitle || newTitle.trim() === '') {
+    return null;
+  }
+  
+  return updateChatSession(sessionId, { title: newTitle.trim() });
+};
+
 // Update a chat session
 export const updateChatSession = (
   sessionId: string, 

@@ -39,3 +39,9 @@ export interface ChatSession {
   updatedAt: Date;
   firstQuery?: string;
 }
+
+// Interface for renaming a chat session
+export interface RenameSessionProps {
+  sessionId: string;
+  newTitle: string;
+}
