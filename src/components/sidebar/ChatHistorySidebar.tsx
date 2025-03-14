@@ -35,7 +35,7 @@ const ChatHistorySidebar = ({
   setHistory,
 }: ChatHistorySidebarProps) => {
   return (
-    <Sidebar>
+    <Sidebar aria-label="Chat history sidebar">
       <SidebarHeader className="p-3">
         <Button 
           variant="default" 
@@ -62,7 +62,7 @@ const ChatHistorySidebar = ({
       
       <SidebarFooter className="p-3 border-t">
         <div className="flex items-center justify-between">
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-muted-foreground" aria-live="polite">
             {history.length > 0 ? (
               <Badge variant="outline" className="gap-1">
                 <span>{history.length}</span> 
@@ -82,7 +82,7 @@ const ChatHistorySidebar = ({
                 onDeleteSession(currentSession);
                 onNewChat();
               }}
-              aria-label="Clear current chat"
+              aria-label="Clear current chat and start new"
             >
               <X size={14} aria-hidden="true" />
             </Button>

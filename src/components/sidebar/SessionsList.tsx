@@ -20,7 +20,10 @@ const SessionsList = ({
   onDeleteSession,
 }: SessionsListProps) => {
   return (
-    <ScrollArea className="h-[calc(100vh-180px)]" aria-labelledby="recent-chats-label">
+    <ScrollArea 
+      className="h-[calc(100vh-180px)]" 
+      aria-labelledby="recent-chats-label"
+    >
       <SidebarMenu>
         {sessions.length > 0 ? (
           sessions.map((session, index) => (

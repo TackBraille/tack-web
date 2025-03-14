@@ -43,19 +43,22 @@ const ChatSessionItem = ({
     setShowDeleteConfirm(false);
   };
 
+  const formattedTime = formatDistanceToNow(new Date(session.updatedAt), { addSuffix: true });
+  const chatName = `Chat ${index + 1}`;
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton 
         isActive={isActive}
         onClick={onSelect}
-        tooltip={`Chat ${index + 1}`}
-        aria-label={`Select chat ${index + 1}`}
+        tooltip={`${chatName}, updated ${formattedTime}`}
+        aria-label={`Select ${chatName}, updated ${formattedTime}`}
         aria-current={isActive ? 'page' : undefined}
       >
         <MessageCircle size={16} aria-hidden="true" />
-        <span className="truncate max-w-[150px]">Chat {index + 1}</span>
-        <span className="ml-auto text-xs text-muted-foreground">
-          {formatDistanceToNow(new Date(session.updatedAt), { addSuffix: true })}
+        <span className="truncate max-w-[150px]">{chatName}</span>
+        <span className="ml-auto text-xs text-muted-foreground" aria-hidden="true">
+          {formattedTime}
         </span>
       </SidebarMenuButton>
       
@@ -63,6 +66,7 @@ const ChatSessionItem = ({
         <DeleteConfirmation 
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
+          itemName={chatName}
         />
       ) : (
         <div className="ml-2">
@@ -70,7 +74,7 @@ const ChatSessionItem = ({
             onClick={handleDeleteClick}
             showOnHover
             className="p-1"
-            aria-label={`Delete chat ${index + 1}`}
+            aria-label={`Delete ${chatName}`}
           >
             <Trash2 size={14} aria-hidden="true" />
           </SidebarMenuAction>
