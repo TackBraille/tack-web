@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SummaryOutput as SummaryType } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ interface SummaryOutputProps {
 
 const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
   const [copied, setCopied] = React.useState(false);
+  const [isReading, setIsReading] = React.useState(false);
 
   if (!data || (!data.summary && !data.loading && !data.error)) {
     return null;
@@ -20,11 +22,28 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
 
   const handleReadAloud = () => {
     if (data.summary) {
-      readAloud(data.summary);
-      toast({
-        title: "Reading aloud",
-        description: "Text-to-speech started. Click again to stop.",
-      });
+      if (isReading) {
+        // Stop reading if currently reading
+        window.speechSynthesis.cancel();
+        setIsReading(false);
+        toast({
+          title: "Reading stopped",
+          description: "Text-to-speech has been stopped.",
+        });
+      } else {
+        // Start reading
+        readAloud(data.summary);
+        setIsReading(true);
+        toast({
+          title: "Reading aloud",
+          description: "Text is being read aloud. Click the button again to stop.",
+        });
+        
+        // Add event listener to detect when speech has finished
+        window.speechSynthesis.addEventListener('end', () => {
+          setIsReading(false);
+        }, { once: true });
+      }
     }
   };
 
@@ -78,12 +97,12 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                  className={`gap-2 ${isReading ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'} transition-colors`}
                   onClick={handleReadAloud}
-                  aria-label="Read summary aloud using text-to-speech"
+                  aria-label={isReading ? "Stop reading aloud" : "Read summary aloud using text-to-speech"}
                 >
                   <Volume size={16} aria-hidden="true" />
-                  <span>Read Aloud</span>
+                  <span>{isReading ? "Stop Reading" : "Read Aloud"}</span>
                 </Button>
                 
                 <Button 

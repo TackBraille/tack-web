@@ -10,7 +10,7 @@ export const summarizeContent = async (content: string, type: 'text' | 'url'): P
     
     // Show loading toast
     toast({
-      title: "Generating summary",
+      title: "Generating response",
       description: "Please wait while we process your request...",
     });
     
@@ -40,8 +40,8 @@ export const summarizeContent = async (content: string, type: 'text' | 'url'): P
   } catch (error) {
     console.error('Error summarizing content:', error);
     toast({
-      title: "Summarization failed",
-      description: "Unable to summarize the content. Please try again.",
+      title: "Response generation failed",
+      description: "Unable to generate a response. Please try again.",
       variant: "destructive",
     });
     throw error;
@@ -58,7 +58,7 @@ export const extractDomain = (url: string): string => {
   }
 };
 
-// Function to read text aloud
+// Improved function to read text aloud with better voice selection and error handling
 export const readAloud = (text: string): void => {
   if (!window.speechSynthesis) {
     toast({
@@ -76,20 +76,47 @@ export const readAloud = (text: string): void => {
   utterance.rate = 1.0;
   utterance.pitch = 1.0;
   
-  // Use a voice that's available
-  const voices = window.speechSynthesis.getVoices();
-  if (voices.length > 0) {
-    // Try to find a good English voice
-    const englishVoice = voices.find(voice => 
-      voice.lang.includes('en') && voice.localService
-    );
-    if (englishVoice) utterance.voice = englishVoice;
+  // Use a voice that's available - load voices if needed
+  let voices = window.speechSynthesis.getVoices();
+  
+  // If voices aren't loaded yet, wait for them
+  if (voices.length === 0) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      voices = window.speechSynthesis.getVoices();
+      selectVoiceAndSpeak();
+    };
+  } else {
+    selectVoiceAndSpeak();
   }
   
-  window.speechSynthesis.speak(utterance);
-  
-  toast({
-    title: "Reading aloud",
-    description: "Text is being read aloud. Use browser controls to stop.",
-  });
+  function selectVoiceAndSpeak() {
+    // Try to find a good English voice with preference for natural sounding ones
+    const preferredVoices = [
+      // Look for high-quality voices first
+      voices.find(v => v.name.includes('Google') && v.lang.includes('en')),
+      voices.find(v => v.name.includes('Microsoft') && v.lang.includes('en')),
+      voices.find(v => v.name.includes('Apple') && v.lang.includes('en')),
+      // Then any English voice
+      voices.find(v => v.lang.includes('en') && v.localService),
+      voices.find(v => v.lang.includes('en')),
+      // Finally any voice
+      voices[0]
+    ];
+    
+    // Use the first available voice from our preferences
+    const selectedVoice = preferredVoices.find(v => v);
+    if (selectedVoice) utterance.voice = selectedVoice;
+    
+    // Add error handling
+    utterance.onerror = (event) => {
+      console.error('Text-to-speech error:', event);
+      toast({
+        title: "Text-to-speech error",
+        description: "There was an error while reading the text aloud.",
+        variant: "destructive",
+      });
+    };
+    
+    window.speechSynthesis.speak(utterance);
+  }
 };

@@ -38,9 +38,39 @@ export function mapToGeminiModel(modelId?: string): string {
  * Creates a prompt for the Gemini model based on content type
  */
 export function createPrompt(content: string, type: 'text' | 'url'): string {
-  return type === 'url' 
-    ? `Please summarize the content from this URL: ${content}. This app is for visually impaired users, so provide direct, factual, and concise answers without summarizing the question back. For date or time questions, give the actual date/time information. Include only 1 relevant follow-up question that is very brief.`
-    : `Please answer this question directly: ${content}. This app is for visually impaired users, so provide direct, factual, and concise answers without summarizing the question back. For date or time questions, give the actual date/time information. Include only 1 relevant follow-up question that is very brief.`;
+  // Application context for more helpful responses
+  const appContext = `
+    You are an AI assistant for an accessibility-focused application designed to help visually impaired users 
+    access and understand web content. Your responses will be read aloud using text-to-speech technology, 
+    so clarity and conciseness are essential. The user is interacting with a screen reader.
+  `;
+  
+  const guidelines = `
+    1. Provide direct, factual answers without unnecessary elaboration
+    2. For date/time questions, give specific information rather than relative terms
+    3. Structure information in a way that's easy to follow when heard rather than read
+    4. Do not repeat the question in your answer
+    5. Prioritize clarity and conciseness over conversational tone
+    6. Include 2-3 relevant follow-up questions that the user might want to ask next
+  `;
+  
+  if (type === 'url') {
+    return `${appContext}
+    
+    Please summarize the content from this URL: ${content}
+    
+    ${guidelines}
+    
+    Format your response with a clear summary followed by "Related Questions:" and then list 2-3 follow-up questions.`;
+  } else {
+    return `${appContext}
+    
+    Please answer this question directly: ${content}
+    
+    ${guidelines}
+    
+    Format your response with a clear answer followed by "Related Questions:" and then list 2-3 follow-up questions.`;
+  }
 }
 
 /**
