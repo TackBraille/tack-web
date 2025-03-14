@@ -41,21 +41,21 @@ export function extractRelatedQuestions(response: string): string[] {
   const questionsMatch = response.match(/Related Questions:([\s\S]*)/i);
   
   if (questionsMatch && questionsMatch[1]) {
-    // Try to split by numbered list (1., 2., 3.)
+    // Try to split by numbered list (1., 2., 3., etc.)
     const questionText = questionsMatch[1].trim();
     const questions = questionText.split(/\d+\.\s+/)
       .map(q => q.trim())
       .filter(q => q.length > 0);
     
     if (questions.length > 0) {
-      return questions;
+      return questions.slice(0, 6); // Increase to get up to 6 questions
     }
     
     // Fallback to splitting by newlines
     return questionText.split('\n')
       .map(line => line.trim().replace(/^[•\-*]\s+/, ''))
       .filter(line => line.length > 0 && line.endsWith('?'))
-      .slice(0, 3);
+      .slice(0, 6); // Increase to get up to 6 questions
   }
   
   // Fallback: Look for question marks in the text
@@ -64,7 +64,7 @@ export function extractRelatedQuestions(response: string): string[] {
     .map(match => match[0].trim())
     .filter(q => q.length > 10 && q.length < 100);
   
-  return allQuestions.slice(0, 3);
+  return allQuestions.slice(0, 6); // Increase to get up to 6 questions
 }
 
 /**
@@ -78,7 +78,10 @@ export function generateFallbackContent(content: string, type: 'text' | 'url'): 
   const relatedQuestions = [
     `Try again?`,
     `Check your internet connection?`,
-    `Try a different query?`
+    `Try a different query?`,
+    `Is the service working now?`,
+    `Try a simpler question?`,
+    `Would you like help troubleshooting?`
   ];
 
   return {

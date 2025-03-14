@@ -20,12 +20,12 @@ const RelatedQuestions: React.FC<RelatedQuestionsProps> = ({ questions, onQuesti
         <span>Related Questions</span>
       </h2>
       
-      <div className="flex flex-wrap gap-2" role="list">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" role="list">
         {questions.map((question, index) => (
           <button
             key={index}
             onClick={() => onQuestionClick(question)}
-            className="bg-secondary/50 hover:bg-secondary px-3 py-1.5 rounded-full text-sm transition-colors flex items-center gap-1"
+            className="bg-secondary/50 hover:bg-secondary px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-1 text-left"
             aria-label={`Add related question to input: ${question}`}
             role="listitem"
           >

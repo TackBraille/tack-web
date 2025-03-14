@@ -58,7 +58,7 @@ export function createPrompt(content: string, type: 'text' | 'url', conversation
     3. Structure information in a way that's easy to follow when heard rather than read
     4. Do not repeat the question in your answer
     5. Prioritize clarity and conciseness over conversational tone
-    6. Include 2-3 relevant follow-up questions that the user might want to ask next
+    6. Include 5-6 relevant follow-up questions that the user might want to ask next
   `;
 
   // Build conversation context from history
@@ -83,7 +83,7 @@ export function createPrompt(content: string, type: 'text' | 'url', conversation
     
     ${guidelines}
     
-    Format your response with a clear summary followed by "Related Questions:" and then list 2-3 follow-up questions.`;
+    Format your response with a clear summary followed by "Related Questions:" and then list 5-6 follow-up questions.`;
   } else {
     return `${appContext}
     
@@ -93,7 +93,7 @@ export function createPrompt(content: string, type: 'text' | 'url', conversation
     
     ${guidelines}
     
-    Format your response with a clear answer followed by "Related Questions:" and then list 2-3 follow-up questions.`;
+    Format your response with a clear answer followed by "Related Questions:" and then list 5-6 follow-up questions.`;
   }
 }
 
