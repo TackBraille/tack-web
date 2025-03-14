@@ -2,7 +2,7 @@
 import React from 'react';
 import { Source } from '@/types';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Volume, FileText, Globe, Link, Book } from 'lucide-react';
+import { ExternalLink, Volume, FileText, Globe, Link, Book, University, Award, BookOpen } from 'lucide-react';
 import { readAloud } from '@/utils/summarizeUtils';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +27,23 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
       title: "Reading source summary",
       description: `Reading summary for: ${title}`
     });
+  };
+
+  // Get appropriate icon for source
+  const getSourceIcon = (source: Source) => {
+    if (!source.url) return <FileText size={16} className="text-primary" aria-hidden="true" />;
+    
+    const url = source.url.toLowerCase();
+    
+    if (url.includes('wikipedia')) {
+      return <BookOpen size={16} className="text-primary" aria-hidden="true" />;
+    } else if (url.includes('asu.edu') || url.includes('arizona') || url.includes('.edu')) {
+      return <University size={16} className="text-primary" aria-hidden="true" />;
+    } else if (url.includes('usnews') || url.includes('ranking') || url.includes('timeshighereducation')) {
+      return <Award size={16} className="text-primary" aria-hidden="true" />;
+    } else {
+      return <Globe size={16} className="text-primary" aria-hidden="true" />;
+    }
   };
 
   return (
@@ -57,11 +74,7 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            {source.url ? (
-                              <Globe size={16} className="text-primary" aria-hidden="true" />
-                            ) : (
-                              <FileText size={16} className="text-primary" aria-hidden="true" />
-                            )}
+                            {getSourceIcon(source)}
                             <h3 
                               id={`source-${source.id}-title`} 
                               className="font-medium text-lg"
@@ -132,7 +145,30 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
                       </div>
                       
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {source.url && (
+                        {source.url && source.url.includes('.edu') && (
+                          <Badge variant="outline" className="text-xs bg-blue-100 dark:bg-blue-900/20">
+                            <University size={12} className="mr-1" />
+                            University
+                          </Badge>
+                        )}
+                        {source.url && source.url.includes('wikipedia') && (
+                          <Badge variant="outline" className="text-xs">
+                            <BookOpen size={12} className="mr-1" />
+                            Encyclopedia
+                          </Badge>
+                        )}
+                        {source.url && (source.url.includes('usnews') || source.url.includes('ranking')) && (
+                          <Badge variant="outline" className="text-xs bg-amber-100 dark:bg-amber-900/20">
+                            <Award size={12} className="mr-1" />
+                            Rankings
+                          </Badge>
+                        )}
+                        {source.url && !(
+                          source.url.includes('.edu') || 
+                          source.url.includes('wikipedia') || 
+                          source.url.includes('usnews') || 
+                          source.url.includes('ranking')
+                        ) && (
                           <Badge variant="outline" className="text-xs">
                             <Globe size={12} className="mr-1" />
                             Website
@@ -157,3 +193,4 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
 };
 
 export default SourceList;
+
