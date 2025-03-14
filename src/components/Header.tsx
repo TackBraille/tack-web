@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AIModel } from '@/types';
 import { AVAILABLE_MODELS, selectModel, getCurrentModel, getCurrentSubModel } from '@/utils/modelUtils';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -23,7 +23,7 @@ const Header: React.FC = () => {
   const [activeSubModel, setActiveSubModel] = useState<string | null>(getCurrentSubModel());
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -49,13 +49,15 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="w-full bg-background/80 backdrop-blur-sm z-10 py-6 animate-slide-down sticky top-0">
+    <header className="w-full bg-background/80 backdrop-blur-sm z-10 py-4 shadow-sm sticky top-0 border-b border-border/50 animate-slide-down">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Eye className="h-6 w-6 text-primary" aria-hidden="true" />
+          <div className="flex items-center gap-3 transition-all duration-300 hover:scale-105">
+            <div className="bg-primary/10 p-2 rounded-full">
+              <Eye className="h-5 w-5 text-primary" aria-hidden="true" />
+            </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight flex items-center">
                 <span className="text-primary">T</span>ack
                 <span className="text-primary">I</span>nsight
               </h1>
