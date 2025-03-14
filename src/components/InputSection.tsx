@@ -8,9 +8,10 @@ import { toast } from '@/components/ui/use-toast';
 interface InputSectionProps {
   onSubmit: (content: string, type: 'text' | 'url') => void;
   isLoading: boolean;
+  externalSetInputContent?: (content: string) => void; // New prop for external control
 }
 
-const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading }) => {
+const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, externalSetInputContent }) => {
   const [inputContent, setInputContent] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [detectedType, setDetectedType] = useState<'text' | 'url'>('text');
@@ -30,6 +31,11 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading }) => {
     setInputContent(value);
     setDetectedType(detectInputType(value));
   };
+
+  // Expose setInputContent to parent components
+  if (externalSetInputContent) {
+    externalSetInputContent(handleInputChange);
+  }
 
   // Function to handle form submission
   const handleSubmit = (e: React.FormEvent) => {
@@ -53,6 +59,8 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading }) => {
     }
 
     onSubmit(inputContent, detectedType);
+    // Clear input after submission
+    setInputContent('');
   };
 
   // Function to handle speech-to-text

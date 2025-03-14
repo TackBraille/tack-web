@@ -36,9 +36,12 @@ const Index = () => {
     history
   });
 
+  // This function is kept but its behavior changes
+  // Now it just passes the related question to MainContent
+  // which will populate the input field
   const handleRelatedQuestionClick = (question: string) => {
-    // When a user clicks a related question, we submit it as a new query
-    handleSubmit(question, 'text');
+    // We no longer auto-submit here, just pass the question
+    // MainContent will handle populating the input field
   };
 
   return (
