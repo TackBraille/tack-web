@@ -14,19 +14,26 @@ export async function GET(request: Request) {
       {
         id: '1',
         title: 'Example Session 1',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: new Date(),
+        updatedAt: new Date()
       },
       {
         id: '2',
         title: 'Example Session 2',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
     ];
     
+    // Convert Date objects to ISO strings for JSON serialization
+    const serializedSessions = sessions.map(session => ({
+      ...session,
+      createdAt: session.createdAt.toISOString(),
+      updatedAt: session.updatedAt.toISOString()
+    }));
+    
     return new Response(
-      JSON.stringify(sessions),
+      JSON.stringify(serializedSessions),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
@@ -52,12 +59,19 @@ export async function POST(request: Request) {
     const newSession: ChatSession = {
       id: Date.now().toString(),
       title: title || 'New Chat',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    // Convert Date objects to ISO strings for JSON serialization
+    const serializedSession = {
+      ...newSession,
+      createdAt: newSession.createdAt.toISOString(),
+      updatedAt: newSession.updatedAt.toISOString()
     };
     
     return new Response(
-      JSON.stringify(newSession),
+      JSON.stringify(serializedSession),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
