@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { MessageCircle, Trash2 } from 'lucide-react';
+import { MessageCircle, Trash2, Edit, Download } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { 
   SidebarMenuItem, 
@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/sidebar';
 import { ChatSession } from '@/types';
 import DeleteConfirmation from './DeleteConfirmation';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ChatSessionItemProps {
   session: ChatSession;
@@ -16,6 +17,8 @@ interface ChatSessionItemProps {
   isActive: boolean;
   onSelect: () => void;
   onDelete: () => void;
+  onRename: (sessionId: string) => void;
+  onExport: (sessionId: string) => void;
 }
 
 const ChatSessionItem = ({
@@ -24,8 +27,11 @@ const ChatSessionItem = ({
   isActive,
   onSelect,
   onDelete,
+  onRename,
+  onExport,
 }: ChatSessionItemProps) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { toast } = useToast();
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -47,8 +53,24 @@ const ChatSessionItem = ({
     setShowDeleteConfirm(false);
   };
 
+  const handleRenameClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onRename(session.id);
+  };
+
+  const handleExportClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onExport(session.id);
+    toast({
+      title: "Chat exported",
+      description: "Your chat has been exported to a text file.",
+    });
+  };
+
   const formattedTime = formatDistanceToNow(new Date(session.updatedAt), { addSuffix: true });
-  const chatName = `Chat ${index + 1}`;
+  const chatName = session.title || `Chat ${index + 1}`;
 
   return (
     <SidebarMenuItem>
@@ -73,7 +95,7 @@ const ChatSessionItem = ({
           itemName={chatName}
         />
       ) : (
-        <div className="ml-2">
+        <div className="flex items-center gap-1 ml-2">
           <SidebarMenuAction
             onClick={handleDeleteClick}
             showOnHover
@@ -82,6 +104,22 @@ const ChatSessionItem = ({
             data-testid={`delete-chat-${session.id}`}
           >
             <Trash2 size={14} className="text-muted-foreground hover:text-destructive" aria-hidden="true" />
+          </SidebarMenuAction>
+          <SidebarMenuAction
+            onClick={handleRenameClick}
+            showOnHover
+            className="p-1"
+            aria-label={`Rename ${chatName}`}
+          >
+            <Edit size={14} className="text-muted-foreground hover:text-primary" aria-hidden="true" />
+          </SidebarMenuAction>
+          <SidebarMenuAction
+            onClick={handleExportClick}
+            showOnHover
+            className="p-1"
+            aria-label={`Export ${chatName}`}
+          >
+            <Download size={14} className="text-muted-foreground hover:text-primary" aria-hidden="true" />
           </SidebarMenuAction>
         </div>
       )}

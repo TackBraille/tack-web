@@ -11,6 +11,10 @@ interface SessionsListProps {
   currentSession?: string;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
+  onRenameSession: (sessionId: string) => void;
+  onExportSession: (sessionId: string) => void;
+  filteredSessions?: ChatSession[];
+  isSearching?: boolean;
 }
 
 const SessionsList = ({
@@ -18,15 +22,21 @@ const SessionsList = ({
   currentSession,
   onSelectSession,
   onDeleteSession,
+  onRenameSession,
+  onExportSession,
+  filteredSessions,
+  isSearching = false,
 }: SessionsListProps) => {
+  const displaySessions = isSearching && filteredSessions ? filteredSessions : sessions;
+  
   return (
     <ScrollArea 
-      className="h-[calc(100vh-180px)]" 
+      className="h-[calc(100vh-240px)]" 
       aria-labelledby="recent-chats-label"
     >
       <SidebarMenu>
-        {sessions.length > 0 ? (
-          sessions.map((session, index) => (
+        {displaySessions.length > 0 ? (
+          displaySessions.map((session, index) => (
             <ChatSessionItem
               key={session.id}
               session={session}
@@ -34,10 +44,18 @@ const SessionsList = ({
               isActive={currentSession === session.id}
               onSelect={() => onSelectSession(session.id)}
               onDelete={() => onDeleteSession(session.id)}
+              onRename={onRenameSession}
+              onExport={onExportSession}
             />
           ))
         ) : (
-          <EmptyState />
+          isSearching ? (
+            <div className="px-3 py-4 text-sm text-muted-foreground flex items-center justify-center">
+              <p>No matching chats found.</p>
+            </div>
+          ) : (
+            <EmptyState />
+          )
         )}
       </SidebarMenu>
     </ScrollArea>

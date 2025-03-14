@@ -31,7 +31,7 @@ export const saveChatSessions = (sessions: ChatSession[]): void => {
 export const createChatSession = (firstQuery?: string): ChatSession => {
   const newSession: ChatSession = {
     id: uuidv4(),
-    title: 'New Chat',
+    title: '',
     createdAt: new Date(),
     updatedAt: new Date(),
     firstQuery
@@ -132,17 +132,21 @@ export const saveSessionHistory = (sessionId: string, history: SummaryOutput[]):
     const session = sessions.find(s => s.id === sessionId);
     
     if (session) {
-      updateChatSession(sessionId, { 
-        updatedAt: new Date()
-      });
+      // If this is the first message and there's no title, use the first few words as the title
+      if (history.length === 1 && !session.title && history[0].originalQuery) {
+        const words = history[0].originalQuery.split(' ');
+        const title = words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
+        updateChatSession(sessionId, { 
+          updatedAt: new Date(),
+          title
+        });
+      } else {
+        updateChatSession(sessionId, { 
+          updatedAt: new Date()
+        });
+      }
     }
   } catch (error) {
     console.error(`Error saving history for session ${sessionId}:`, error);
   }
-};
-
-// Helper to truncate title
-const truncateTitle = (text: string, maxLength = 30): string => {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + '...';
 };
