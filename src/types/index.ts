@@ -14,7 +14,7 @@ export interface Source {
   url?: string;
 }
 
-export type AIModel = 'claude' | 'perplexity' | 'chatgpt';
+export type AIModel = 'claude' | 'perplexity' | 'chatgpt' | 'llama' | 'gemini' | 'mistral';
 
 export interface ModelConfig {
   id: AIModel;

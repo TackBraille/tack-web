@@ -18,6 +18,21 @@ export const AVAILABLE_MODELS: ModelConfig[] = [
     id: 'chatgpt',
     name: 'ChatGPT',
     description: 'OpenAI\'s GPT model for versatile text generation'
+  },
+  {
+    id: 'llama',
+    name: 'Llama',
+    description: 'Meta\'s open source LLM for efficient summarization'
+  },
+  {
+    id: 'gemini',
+    name: 'Gemini',
+    description: 'Google\'s multimodal AI model with advanced capabilities'
+  },
+  {
+    id: 'mistral',
+    name: 'Mistral',
+    description: 'Mistral AI\'s efficient model for accurate text processing'
   }
 ];
 
