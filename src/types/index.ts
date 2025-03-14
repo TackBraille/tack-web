@@ -30,3 +30,11 @@ export interface SubModel {
 }
 
 export type InputType = 'text' | 'url' | 'conversation';
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  createdAt: Date;
+  updatedAt: Date;
+  firstQuery?: string;
+}
