@@ -59,7 +59,6 @@ async function callGeminiService(content: string, type: 'text' | 'url', modelId?
           geminiModel = 'gemini-2.0-flash';
           break;
         case 'mistral':
-        case 'llama':
         case 'perplexity':
           // For these models we'll use gemini-2.0-pro
           geminiModel = 'gemini-2.0-pro';
