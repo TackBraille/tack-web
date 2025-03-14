@@ -39,6 +39,16 @@ export const summarizeContent = async (
     
     const data = await response.json();
     
+    // For URL inputs, ensure we have at least one source
+    if (type === 'url' && (!data.sources || data.sources.length === 0)) {
+      data.sources = [{
+        id: '1',
+        title: 'Provided URL',
+        briefSummary: 'Information from this website',
+        url: content
+      }];
+    }
+    
     // Add a small delay to ensure the UI transition looks smooth
     await new Promise(resolve => setTimeout(resolve, 300));
     
@@ -58,7 +68,7 @@ export const summarizeContent = async (
 export const extractDomain = (url: string): string => {
   try {
     const domain = new URL(url).hostname;
-    return domain;
+    return domain.replace(/^www\./, ''); // Remove www. if present
   } catch {
     return url;
   }

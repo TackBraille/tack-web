@@ -2,7 +2,7 @@
 import React from 'react';
 import { SummaryOutput as SummaryType } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Volume, Copy, Check, ExternalLink } from 'lucide-react';
+import { Volume, Copy, Check } from 'lucide-react';
 import { readAloud } from '@/utils/summarizeUtils';
 import { toast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -41,9 +41,18 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
         });
         
         // Add event listener to detect when speech has finished
-        window.speechSynthesis.addEventListener('end', () => {
+        const handleSpeechEnd = () => {
           setIsReading(false);
-        }, { once: true });
+        };
+        
+        window.speechSynthesis.addEventListener('end', handleSpeechEnd, { once: true });
+        
+        // Safety timeout in case the end event doesn't fire
+        setTimeout(() => {
+          if (setIsReading) {
+            setIsReading(false);
+          }
+        }, (data.summary.length / 5) * 1000); // Approximate reading time
       }
     }
   };
@@ -159,7 +168,7 @@ const SummaryOutput: React.FC<SummaryOutputProps> = ({ data }) => {
         </div>
       </section>
       
-      {/* Display sources with the enhanced SourceList component */}
+      {/* Display sources with the SourceList component */}
       {data?.sources && data.sources.length > 0 && (
         <SourceList sources={data.sources} loading={data.loading} />
       )}

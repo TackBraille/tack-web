@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, Volume, FileText, Globe, Link } from 'lucide-react';
 import { readAloud } from '@/utils/summarizeUtils';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { extractDomain } from '@/utils/summarizeUtils';
+import { toast } from '@/components/ui/use-toast';
 
 interface SourceListProps {
   sources: Source[];
@@ -22,18 +23,25 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
 
   const handleReadAloudSource = (title: string, summary: string) => {
     readAloud(`Source: ${title}. ${summary}`);
+    toast({
+      title: "Reading source summary",
+      description: `Reading summary for: ${title}`
+    });
   };
 
   return (
     <section 
-      className="w-full max-w-3xl mx-auto mb-8"
+      className="w-full max-w-3xl mx-auto mb-8 animate-fade-in"
       aria-labelledby="sources-section-title"
     >
-      <h2 id="sources-section-title" className="text-xl font-semibold mb-3">Sources</h2>
+      <h2 id="sources-section-title" className="text-xl font-semibold mb-3 flex items-center gap-2">
+        <FileText size={20} className="text-primary" aria-hidden="true" />
+        Sources
+      </h2>
       
-      <Card>
+      <Card className="overflow-hidden border-muted">
         {loading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-8" aria-live="polite">
             <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
             <span className="ml-3 text-muted-foreground">Loading sources...</span>
           </div>
@@ -70,7 +78,7 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
                       <p className="text-muted-foreground text-sm">{source.briefSummary}</p>
                     </div>
                     
-                    <div className="flex gap-2 ml-4">
+                    <div className="flex gap-2 ml-4 flex-shrink-0">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -85,7 +93,7 @@ const SourceList: React.FC<SourceListProps> = ({ sources, loading }) => {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Read aloud</p>
+                            <p>Read aloud source summary</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
