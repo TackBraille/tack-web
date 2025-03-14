@@ -49,13 +49,17 @@ export function useChatSessions() {
   };
 
   const handleDeleteSession = (sessionId: string) => {
+    // Delete from local storage first
     deleteChatSession(sessionId);
-    setChatSessions(chatSessions.filter(s => s.id !== sessionId));
     
+    // Then update the state
+    setChatSessions(prevSessions => prevSessions.filter(s => s.id !== sessionId));
+    
+    // If the deleted session was the current one, select another session or clear the current session
     if (currentSessionId === sessionId) {
-      const newSessions = chatSessions.filter(s => s.id !== sessionId);
-      if (newSessions.length > 0) {
-        handleSelectSession(newSessions[0].id);
+      const remainingSessions = chatSessions.filter(s => s.id !== sessionId);
+      if (remainingSessions.length > 0) {
+        handleSelectSession(remainingSessions[0].id);
       } else {
         setCurrentSessionId(null);
         setHistory([]);
@@ -102,7 +106,7 @@ export function useChatSessions() {
     summaryData,
     setSummaryData,
     history,
-    setHistory, // Expose setHistory
+    setHistory,
     chatSessions,
     currentSessionId,
     handleNewChat,

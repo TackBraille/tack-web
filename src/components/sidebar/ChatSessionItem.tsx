@@ -75,6 +75,7 @@ const ChatSessionItem = ({
             showOnHover
             className="p-1"
             aria-label={`Delete ${chatName}`}
+            data-testid={`delete-chat-${session.id}`}
           >
             <Trash2 size={14} aria-hidden="true" />
           </SidebarMenuAction>
