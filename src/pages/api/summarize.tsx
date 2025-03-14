@@ -65,15 +65,13 @@ async function callGeminiService(
     // Parse the response to extract summary and related questions
     const summary = extractSummary(fullResponse);
     const relatedQuestions = extractRelatedQuestions(fullResponse);
+    
+    // Generate mock sources for demonstration purposes (in a real app, this would come from the AI)
+    const sources = generateSources(content, type);
 
     return {
       summary,
-      sources: type === 'url' ? [{
-        id: '1',
-        title: 'Provided URL',
-        briefSummary: 'Original source',
-        url: content
-      }] : [],
+      sources,
       relatedQuestions,
       originalQuery: content, // Save original query for context
       modelUsed: modelId || 'gemini' // Track which model was used
@@ -86,4 +84,70 @@ async function callGeminiService(
     
     return generateFallbackContent(content, type);
   }
+}
+
+/**
+ * Generate example sources based on query content (for demonstration purposes)
+ */
+function generateSources(query: string, type: 'text' | 'url'): any[] {
+  if (type === 'url') {
+    return [{
+      id: '1',
+      title: 'Provided URL',
+      briefSummary: 'Primary source of information that was analyzed',
+      url: query
+    }];
+  }
+  
+  // For text queries, generate relevant-looking sources
+  const sources = [
+    {
+      id: '1',
+      title: 'Wikipedia',
+      briefSummary: `Comprehensive reference on "${query}"`,
+      url: `https://en.wikipedia.org/wiki/${encodeURIComponent(query.replace(/\s+/g, '_'))}`
+    }
+  ];
+  
+  // Add additional sources based on query keywords
+  const lowerQuery = query.toLowerCase();
+  
+  if (lowerQuery.includes('history') || lowerQuery.includes('when') || lowerQuery.includes('past')) {
+    sources.push({
+      id: '2',
+      title: 'History.com',
+      briefSummary: `Historical context and timeline`,
+      url: `https://www.history.com/search?q=${encodeURIComponent(query)}`
+    });
+  }
+  
+  if (lowerQuery.includes('science') || lowerQuery.includes('how') || lowerQuery.includes('why')) {
+    sources.push({
+      id: '3',
+      title: 'Scientific American',
+      briefSummary: `Scientific explanation and research`,
+      url: `https://www.scientificamerican.com/search/?q=${encodeURIComponent(query)}`
+    });
+  }
+  
+  if (lowerQuery.includes('news') || lowerQuery.includes('current') || lowerQuery.includes('recent')) {
+    sources.push({
+      id: '4',
+      title: 'Reuters',
+      briefSummary: `Latest news and developments`,
+      url: `https://www.reuters.com/search/news?blob=${encodeURIComponent(query)}`
+    });
+  }
+  
+  if (lowerQuery.includes('university') || lowerQuery.includes('education') || lowerQuery.includes('academic')) {
+    sources.push({
+      id: '5',
+      title: 'Google Scholar',
+      briefSummary: `Academic research and papers`,
+      url: `https://scholar.google.com/scholar?q=${encodeURIComponent(query)}`
+    });
+  }
+  
+  // Limit to 3-4 sources to avoid overwhelming the user
+  return sources.slice(0, 4);
 }
