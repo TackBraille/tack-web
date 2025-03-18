@@ -1,3 +1,4 @@
+
 import { SummaryOutput, Source } from '@/types';
 
 /**
@@ -43,7 +44,7 @@ export function extractRelatedQuestions(response: string): string[] {
     const questionText = questionsMatch[1].trim();
     
     // First approach: Try to extract numbered questions (1. Question)
-    const numberedQuestionMatches = Array.from(questionText.matchAll(/\d+\.\s+([^\d\n]+)/g));
+    const numberedQuestionMatches = Array.from(questionText.matchAll(/\d+[\.\)]\s+([^\d\n]+)/g));
     if (numberedQuestionMatches.length > 0) {
       return numberedQuestionMatches
         .map(match => match[1].trim())
@@ -58,7 +59,7 @@ export function extractRelatedQuestions(response: string): string[] {
         .filter(q => q.length > 0);
     }
     
-    // Third approach: Split by newlines and look for question marks
+    // Third approach: Split by newlines and clean up
     const lines = questionText.split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0 && !line.startsWith('Related Questions:'));
@@ -73,13 +74,15 @@ export function extractRelatedQuestions(response: string): string[] {
     }
   }
   
-  // Fallback: Look for question marks in the text
-  const questionRegex = /([^.!?\n]+\?)/g;
-  const allQuestions = Array.from(response.matchAll(questionRegex))
-    .map(match => match[0].trim())
-    .filter(q => q.length > 10 && q.length < 100);
-  
-  return allQuestions.slice(0, 6);
+  // Fallback with generic questions if we can't extract any
+  return [
+    "What are the main benefits of this topic?",
+    "How does this compare to alternatives?",
+    "What are common misconceptions about this?",
+    "How has this evolved over time?",
+    "What are the future trends in this area?",
+    "Where can I learn more about this topic?"
+  ];
 }
 
 /**
@@ -87,16 +90,16 @@ export function extractRelatedQuestions(response: string): string[] {
  */
 export function generateFallbackContent(content: string, type: 'text' | 'url'): SummaryOutput {
   // More helpful fallback for visually impaired users
-  const summary = `Unable to generate an answer right now. The AI service is currently unavailable. Please try again in a few moments.`;
+  const summary = `I'm currently unable to provide a complete answer about "${content}". This could be due to a temporary service issue. Please try again in a few moments, or try rephrasing your question for better results.`;
 
   // Simple related questions for fallback
   const relatedQuestions = [
-    `Try again?`,
-    `Check your internet connection?`,
-    `Try a different query?`,
-    `Is the service working now?`,
-    `Try a simpler question?`,
-    `Would you like help troubleshooting?`
+    `Try rephrasing your question?`,
+    `Is there a more specific aspect you're interested in?`,
+    `Would you like information about a related topic?`,
+    `Should we try a different approach to this question?`,
+    `Would you like to try a simpler version of this question?`,
+    `Is there another topic you'd like to explore instead?`
   ];
 
   return {
