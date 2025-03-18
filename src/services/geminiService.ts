@@ -1,4 +1,3 @@
-
 import { SummaryOutput, Source, AIModel } from '@/types';
 
 // Set the API key provided by the user
@@ -9,28 +8,28 @@ const GEMINI_API_KEY = 'AIzaSyBsFx_lp0vUmuWU0mjD_hkzY66rSKcPt_8';
  * Maps the requested model to the appropriate Gemini model
  */
 export function mapToGeminiModel(modelId?: string): string {
-  // By default we'll use gemini-1.5-flash as the fastest model
-  let geminiModel = 'gemini-1.5-flash';
+  // Default to using the latest model from the API: gemini-2.0-flash
+  let geminiModel = 'gemini-2.0-flash';
   
   // Model mapping based on user selection
   if (modelId) {
     switch(modelId) {
       case 'gemini':
-        geminiModel = 'gemini-1.5-flash';
+        geminiModel = 'gemini-2.0-flash';
         break;
       case 'mistral':
       case 'perplexity':
       case 'claude':
       case 'llama':
-        // For these models we'll use gemini-1.5-pro
-        geminiModel = 'gemini-1.5-pro';
+        // For these models we'll use gemini-2.0-pro
+        geminiModel = 'gemini-2.0-pro';
         break;
       case 'chatgpt':
         // For ChatGPT option we'll use the most powerful model
-        geminiModel = 'gemini-1.5-pro';
+        geminiModel = 'gemini-2.0-pro';
         break;
       default:
-        geminiModel = 'gemini-1.5-flash';
+        geminiModel = 'gemini-2.0-flash';
     }
   }
 
@@ -124,21 +123,17 @@ function getModelEmulationInstructions(modelId?: string): string {
 }
 
 /**
- * Calls the Gemini API for content summarization with improved error handling
+ * Calls the Gemini API for content summarization
  */
 export async function callGeminiApi(prompt: string, modelId?: string): Promise<any> {
-  // Fixed: Properly check if the API key is valid
   if (!GEMINI_API_KEY) {
-    console.log('No Gemini API key configured, using mock response');
-    return mockGeminiResponse(prompt);
+    throw new Error('Gemini API key is not configured');
   }
 
   const geminiModel = mapToGeminiModel(modelId);
+  console.log(`Making API request to Gemini with model: ${geminiModel}`);
   
   try {
-    // Log that we're making a real API call with a valid key
-    console.log('Making Gemini API request with valid key');
-    
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
@@ -158,7 +153,7 @@ export async function callGeminiApi(prompt: string, modelId?: string): Promise<a
     if (!response.ok) {
       const errorData = await response.text();
       console.error('Gemini API error response:', errorData);
-      throw new Error(`Gemini API request failed: ${response.status}`);
+      throw new Error(`Gemini API request failed: ${response.status} ${errorData}`);
     }
 
     const data = await response.json();
@@ -166,43 +161,6 @@ export async function callGeminiApi(prompt: string, modelId?: string): Promise<a
     return data;
   } catch (error) {
     console.error('Error calling Gemini API:', error);
-    return mockGeminiResponse(prompt);
+    throw error; // Rethrow to be handled by the caller
   }
-}
-
-/**
- * Generates a mock response when the Gemini API is unavailable
- */
-function mockGeminiResponse(prompt: string): any {
-  console.log('Generating mock Gemini response');
-  
-  // Extract the main question/URL from the prompt
-  const contentMatch = prompt.match(/Please (answer this question directly|summarize the content from this URL): (.+?)(?:\n|$)/);
-  const content = contentMatch ? contentMatch[2].trim() : 'Unknown query';
-  
-  // Generate a relevant mock response based on the content
-  let response = '';
-  const lowerContent = content.toLowerCase();
-  
-  if (lowerContent.includes('university') || lowerContent.includes('college') || lowerContent.includes('asu')) {
-    response = `${content.includes('asu') || content.includes('ASU') ? 'Arizona State University' : 'The university'} is highly regarded for its innovation, research opportunities, and inclusive approach to education. It offers a wide range of academic programs across multiple disciplines and has received recognition for its online programs. The quality of education depends on the specific program and department, with some areas being particularly strong. Students benefit from extensive resources, diverse campus life, and career development opportunities.`;
-  } else if (lowerContent.includes('climate') || lowerContent.includes('environment')) {
-    response = `Climate change is a significant global challenge caused primarily by human activities like burning fossil fuels and deforestation. Key effects include rising temperatures, sea level rise, extreme weather events, disruption of ecosystems, and threats to human health and infrastructure. Addressing climate change requires both mitigation strategies to reduce greenhouse gas emissions and adaptation measures to cope with unavoidable impacts.`;
-  } else if (lowerContent.includes('tech') || lowerContent.includes('ai') || lowerContent.includes('computer')) {
-    response = `Artificial intelligence and machine learning technologies have advanced significantly in recent years, with applications across numerous industries including healthcare, finance, transportation, and education. These technologies can analyze vast amounts of data, recognize patterns, make predictions, and even generate content. While offering substantial benefits like increased efficiency and new capabilities, they also raise important questions about privacy, bias, job displacement, and ethical use.`;
-  } else {
-    response = `This is a mock response generated because the Gemini API is currently unavailable. The system is designed to provide informative, concise answers to your questions or summarize URL content effectively. The actual response would analyze your query and provide relevant information along with sources.`;
-  }
-  
-  // Add related questions section
-  response += `\n\nRelated Questions:\n1. How does this compare to alternatives?\n2. What are the most recent developments in this area?\n3. What are common misconceptions about this topic?\n4. What experts say about this subject?\n5. How might this change in the next five years?\n6. What resources are available to learn more?`;
-  
-  // Return in Gemini API format
-  return {
-    candidates: [{
-      content: {
-        parts: [{ text: response }]
-      }
-    }]
-  };
 }

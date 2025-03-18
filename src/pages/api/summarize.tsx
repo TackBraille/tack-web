@@ -1,4 +1,3 @@
-
 import { SummaryOutput } from '@/types';
 import { callGeminiApi, createPrompt } from '@/services/geminiService';
 import { 
@@ -38,7 +37,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error in summarize API:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to summarize content' }),
+      JSON.stringify({ error: 'Failed to summarize content', details: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
@@ -54,7 +53,7 @@ async function callGeminiService(
   modelId?: string
 ): Promise<SummaryOutput> {
   try {
-    // Create prompt for the AI model, now passing model ID
+    // Create prompt for the AI model
     const prompt = createPrompt(content, type, conversationHistory, modelId);
 
     // Call the Gemini API
@@ -78,12 +77,8 @@ async function callGeminiService(
       modelUsed: modelId || 'gemini' // Track which model was used
     };
   } catch (error) {
-    console.error('Gemini API error:', error);
-    
-    // If API fails, fall back to a simulated response
-    console.log('Falling back to simulated response');
-    
-    return generateFallbackContent(content, type);
+    console.error('Error calling Gemini API:', error);
+    throw error; // Let the main API handler handle the error
   }
 }
 
