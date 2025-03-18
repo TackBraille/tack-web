@@ -1,8 +1,9 @@
+
 import { SummaryOutput, Source, AIModel } from '@/types';
 
-// Replace the suspended API key with a placeholder
+// Set the API key provided by the user
 // In a production environment, this would be stored in environment variables
-const GEMINI_API_KEY = ''; // Intentionally blank to trigger fallback behavior
+const GEMINI_API_KEY = 'AIzaSyBsFx_lp0vUmuWU0mjD_hkzY66rSKcPt_8';
 
 /**
  * Maps the requested model to the appropriate Gemini model
