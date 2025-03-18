@@ -127,8 +127,8 @@ function getModelEmulationInstructions(modelId?: string): string {
  * Calls the Gemini API for content summarization with improved error handling
  */
 export async function callGeminiApi(prompt: string, modelId?: string): Promise<any> {
-  // Check if API key is properly configured
-  if (!GEMINI_API_KEY || GEMINI_API_KEY === '') {
+  // Check if API key is properly configured - fixed the comparison here
+  if (!GEMINI_API_KEY || GEMINI_API_KEY.length === 0) {
     console.log('No valid Gemini API key configured, using mock response');
     return mockGeminiResponse(prompt);
   }
