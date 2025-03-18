@@ -127,15 +127,18 @@ function getModelEmulationInstructions(modelId?: string): string {
  * Calls the Gemini API for content summarization with improved error handling
  */
 export async function callGeminiApi(prompt: string, modelId?: string): Promise<any> {
-  // Check if API key is properly configured - fixed the comparison here
-  if (!GEMINI_API_KEY || GEMINI_API_KEY.length === 0) {
-    console.log('No valid Gemini API key configured, using mock response');
+  // Fixed: Properly check if the API key is valid
+  if (!GEMINI_API_KEY) {
+    console.log('No Gemini API key configured, using mock response');
     return mockGeminiResponse(prompt);
   }
 
   const geminiModel = mapToGeminiModel(modelId);
   
   try {
+    // Log that we're making a real API call with a valid key
+    console.log('Making Gemini API request with valid key');
+    
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
@@ -158,7 +161,9 @@ export async function callGeminiApi(prompt: string, modelId?: string): Promise<a
       throw new Error(`Gemini API request failed: ${response.status}`);
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log('Successful response from Gemini API');
+    return data;
   } catch (error) {
     console.error('Error calling Gemini API:', error);
     return mockGeminiResponse(prompt);
