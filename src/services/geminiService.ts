@@ -2,7 +2,7 @@ import { SummaryOutput, Source, AIModel } from '@/types';
 
 // Replace the suspended API key with a placeholder
 // In a production environment, this would be stored in environment variables
-const GEMINI_API_KEY = 'your-gemini-api-key';
+const GEMINI_API_KEY = ''; // Intentionally blank to trigger fallback behavior
 
 /**
  * Maps the requested model to the appropriate Gemini model
@@ -127,7 +127,7 @@ function getModelEmulationInstructions(modelId?: string): string {
  */
 export async function callGeminiApi(prompt: string, modelId?: string): Promise<any> {
   // Check if API key is properly configured
-  if (!GEMINI_API_KEY || GEMINI_API_KEY === 'your-gemini-api-key') {
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === '') {
     console.log('No valid Gemini API key configured, using mock response');
     return mockGeminiResponse(prompt);
   }
