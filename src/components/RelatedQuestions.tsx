@@ -20,7 +20,7 @@ const RelatedQuestions: React.FC<RelatedQuestionsProps> = ({ questions, onQuesti
   if (validQuestions.length === 0) return null;
   
   return (
-    <section className="w-full max-w-3xl mx-auto mb-8" aria-labelledby="related-questions-heading">
+    <section className="w-full max-w-3xl mx-auto mb-8 pb-24" aria-labelledby="related-questions-heading">
       <h2 
         id="related-questions-heading" 
         className="text-lg font-medium mb-3 flex items-center gap-2"

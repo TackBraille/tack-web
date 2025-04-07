@@ -8,7 +8,7 @@ interface PreviousResponsesProps {
 
 const PreviousResponses: React.FC<PreviousResponsesProps> = ({ history }) => {
   return (
-    <section className="w-full max-w-3xl mx-auto mb-8">
+    <section className="w-full  max-w-3xl mx-auto mb-24">
       <h2 className="text-xl font-semibold mb-3">Previous Conversations</h2>
       <div className="space-y-4">
         {history.slice(0, -1).reverse().map((item, index) => (

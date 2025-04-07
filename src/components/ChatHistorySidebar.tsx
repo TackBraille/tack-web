@@ -85,48 +85,57 @@ const ChatHistorySidebar = ({
               {sessions.length > 0 ? (
                 sessions.map((session, index) => (
                   <SidebarMenuItem key={session.id}>
-                    <SidebarMenuButton 
-                      isActive={currentSession === session.id}
-                      onClick={() => onSelectSession(session.id)}
-                      tooltip={`Chat ${index + 1}`}
-                      aria-label={`Select chat ${index + 1}`}
-                      aria-current={currentSession === session.id ? 'page' : undefined}
-                    >
-                      <MessageCircle size={16} aria-hidden="true" />
-                      <span className="truncate max-w-[150px]">Chat {index + 1}</span>
-                      <span className="ml-auto text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(session.updatedAt), { addSuffix: true })}
-                      </span>
-                    </SidebarMenuButton>
-                    
-                    {confirmDeleteId === session.id ? (
-                      <div className="flex items-center gap-1 ml-2">
-                        <SidebarMenuAction
-                          onClick={confirmDelete}
-                          aria-label="Confirm delete"
-                        >
-                          <Trash2 size={14} className="text-destructive" aria-hidden="true" />
-                        </SidebarMenuAction>
-                        <SidebarMenuAction
-                          onClick={cancelDelete}
-                          aria-label="Cancel delete"
-                        >
-                          <X size={14} aria-hidden="true" />
-                        </SidebarMenuAction>
-                      </div>
-                    ) : (
-                      <div className="ml-2">
-                        <SidebarMenuAction
-                          onClick={(e) => handleDeleteClick(e, session.id)}
-                          showOnHover
-                          className="p-1"
-                          aria-label={`Delete chat ${index + 1}`}
-                        >
-                          <Trash2 size={14} aria-hidden="true" />
-                        </SidebarMenuAction>
-                      </div>
-                    )}
-                  </SidebarMenuItem>
+  <div className="flex items-center justify-between w-full">
+    <SidebarMenuButton 
+      isActive={currentSession === session.id}
+      onClick={() => onSelectSession(session.id)}
+      tooltip={`Chat ${index + 1}`}
+      aria-label={`Select chat ${index + 1}`}
+      aria-current={currentSession === session.id ? 'page' : undefined}
+      className="flex-1"
+    >
+      <MessageCircle size={16} aria-hidden="true" />
+      <span className="truncate max-w-[150px]">Chat {index + 1}</span>
+      <span className="ml-auto text-xs text-muted-foreground">
+        {formatDistanceToNow(new Date(session.updatedAt), { addSuffix: true })}
+      </span>
+    </SidebarMenuButton>
+    
+    {confirmDeleteId === session.id ? (
+      <div className="flex items-center gap-1 ml-auto">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-6 w-6" 
+          onClick={confirmDelete}
+          aria-label="Confirm delete"
+        >
+          <Trash2 size={14} className="text-destructive" />
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-6 w-6" 
+          onClick={cancelDelete}
+          aria-label="Cancel delete"
+        >
+          <X size={14} />
+        </Button>
+      </div>
+    ) : (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6 opacity-0 group-hover:opacity-100"
+        onClick={(e) => handleDeleteClick(e, session.id)}
+        aria-label={`Delete chat ${index + 1}`}
+      >
+        <Trash2 size={14} />
+      </Button>
+    )}
+  </div>
+</SidebarMenuItem>
+
                 ))
               ) : (
                 <div className="px-3 py-4 text-sm text-muted-foreground flex items-center justify-center">
