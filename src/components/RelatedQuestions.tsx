@@ -14,7 +14,7 @@ const RelatedQuestions: React.FC<RelatedQuestionsProps> = ({ questions, onQuesti
   // Filter out any empty questions or non-string values and clean up any remaining numbers or bullets
   const validQuestions = questions
     .filter(q => typeof q === 'string' && q.trim().length > 0)
-    .map(q => q.replace(/^\d+[\.\)]\s*/, '').replace(/^[\*\-\•]\s*/, '').trim());
+    .map(q => q.replace(/^\d+[.\\)]\s*/, '').replace(/^[\\*\-\\•]\s*/, '').trim());
   
   // Return null if there are no valid questions after filtering
   if (validQuestions.length === 0) return null;
