@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -69,7 +70,7 @@ const LoginScreen = () => {
         
         <div className="text-center space-y-5 mb-8 relative z-10">
           <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Insight Scribe
+            Tack Insight Web Browser
           </h1>
           <p className="text-muted-foreground">Transform your meetings into actionable insights</p>
         </div>

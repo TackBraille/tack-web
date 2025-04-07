@@ -63,7 +63,7 @@ const MainContent: React.FC<MainContentProps> = ({
           <h1 className="sr-only">AI Chat Assistant</h1>
         </div>
         <div className="flex flex-col mx-auto w-full items-center justify-center">
-        <h1 className='text-2xl font-semibold pb-6 '>Where Accessbility Meets Intelligence</h1>
+        <h1 className='text-2xl font-semibold pb-6 '>Tack Insight Web Browser</h1>
 
         <InputSection 
           onSubmit={handleSubmit} 
