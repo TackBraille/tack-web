@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Settings, Eye } from 'lucide-react';
+import { UserButton } from '@clerk/clerk-react';
 
 const Header: React.FC = () => {
   const [activeModel, setActiveModel] = useState<AIModel>(getCurrentModel());
@@ -55,7 +56,7 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center">
           <div className="flex md:ml-[280px] items-center gap-3 transition-all duration-300 ">
             <div className="bg-primary/10 p-2 rounded-full">
-              <Eye className="h-5 w-5 text-primary" aria-hidden="true" />
+              <UserButton/>
             </div>
             <div>
               <h1 className="text-xl md:text-2xl font-bold tracking-tight flex items-center">
