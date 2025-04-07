@@ -5,6 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 
+// Add TypeScript declarations for Web Speech API
+declare global {
+  interface Window {
+    SpeechRecognition: SpeechRecognitionConstructor;
+    webkitSpeechRecognition: SpeechRecognitionConstructor;
+  }
+}
+
 interface InputSectionProps {
   onSubmit: (content: string, type: 'text' | 'url') => void;
   isLoading: boolean;
@@ -163,7 +171,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
 
   return (
     <section 
-      className="w-full max-w-3xl mx-auto mb-8 animate-fade-in"
+      className="w-full md:p-0 p-7  mx-auto mb-8 animate-fade-in"
       aria-labelledby="input-section-title"
     >
       <h2 id="input-section-title" className="sr-only">Input Section</h2>
@@ -203,9 +211,10 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
               className="gap-2"
             >
               <Mic size={16} aria-hidden="true" />
-              <span className="sr-only md:not-sr-only md:inline-block">
-                {isListening ? "Stop Listening" : "Voice Input"}
-              </span>
+           {isListening && 
+             <span className="sr-only md:not-sr-only md:inline-block">
+                Stop Listening</span>
+           } 
             </Button>
             
             <Button

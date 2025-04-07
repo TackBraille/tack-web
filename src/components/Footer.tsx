@@ -25,7 +25,7 @@ const Footer: React.FC<FooterProps> = ({ onReset }) => {
   };
 
   return (
-    <footer className="w-full bg-background/80 backdrop-blur-sm border-t py-4 mt-auto" aria-label="Page footer">
+    <footer className=" md:ml-[250px]  overflow-hidden bg-background/80 backdrop-blur-sm border-t py-4 mt-auto" aria-label="Page footer">
       <div className="container mx-auto px-4 flex justify-between items-center flex-wrap gap-y-2">
         <div className="flex gap-2 items-center">
           <TooltipProvider delayDuration={300}>

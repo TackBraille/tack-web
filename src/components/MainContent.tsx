@@ -56,18 +56,21 @@ const MainContent: React.FC<MainContentProps> = ({
   };
 
   return (
-    <main id="main-content" className="flex-1 container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+    <main id="main-content" className="flex flex-col md:w-9/12 mx-auto w-full  pt-8">
+      <div className="items-start justify-start  ">
         <div className="flex items-center gap-2 mb-4">
-          <SidebarTrigger className="flex-shrink-0" aria-label="Toggle chat history" />
+          {/* <SidebarTrigger className="flex-shrink-0" aria-label="Toggle chat history" /> */}
           <h1 className="sr-only">AI Chat Assistant</h1>
         </div>
-        
+        <div className="flex flex-col mx-auto w-full items-center justify-center">
+        <h1 className='text-2xl font-semibold pb-6 '>Where Accessbility Meets Intelligence</h1>
+
         <InputSection 
           onSubmit={handleSubmit} 
           isLoading={isLoading} 
           externalSetInputContent={getInputSetter}
         />
+        </div>
         
         {/* Accessibility announcement region */}
         <div 

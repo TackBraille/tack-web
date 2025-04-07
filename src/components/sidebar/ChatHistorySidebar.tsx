@@ -73,19 +73,7 @@ const ChatHistorySidebar = ({
             <SidebarGroupLabel id="recent-chats-label">
               {searchQuery ? 'Search Results' : 'Recent Chats'}
             </SidebarGroupLabel>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-7 w-7" 
-              onClick={toggleTheme}
-              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {theme === 'dark' ? (
-                <Sun size={14} className="text-muted-foreground" />
-              ) : (
-                <MoonStar size={14} className="text-muted-foreground" />
-              )}
-            </Button>
+          
           </div>
           <SessionsList 
             sessions={sessions}

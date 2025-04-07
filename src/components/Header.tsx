@@ -34,6 +34,7 @@ const Header: React.FC = () => {
 
   const handleModelSelect = (modelId: AIModel) => {
     setActiveModel(modelId);
+    console.log("sidebar shit started")
     selectModel(modelId);
     
     // Reset sub-model when model changes
@@ -50,9 +51,9 @@ const Header: React.FC = () => {
 
   return (
     <header className="w-full bg-background/80 backdrop-blur-sm z-10 py-4 shadow-sm sticky top-0 border-b border-border/50 animate-slide-down">
-      <div className="container mx-auto px-4">
+      <div className="  px-4">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3 transition-all duration-300 hover:scale-105">
+          <div className="flex md:ml-[280px] items-center gap-3 transition-all duration-300 ">
             <div className="bg-primary/10 p-2 rounded-full">
               <Eye className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
@@ -66,7 +67,7 @@ const Header: React.FC = () => {
               </p>
             </div>
           </div>
-
+         
           {isMobile ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
