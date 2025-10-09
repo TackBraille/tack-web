@@ -6,6 +6,9 @@ import { SummaryOutput as SummaryType } from '@/types';
 import RelatedQuestions from '@/components/RelatedQuestions';
 import PreviousResponses from '@/components/PreviousResponses';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useEffect } from 'react';
+import { useVoice } from '@/context/VoiceContext';
+import useTTSSetting from '@/hooks/useTTSSetting';
 
 interface MainContentProps {
   summaryData: SummaryType | null;
@@ -13,6 +16,9 @@ interface MainContentProps {
   history: SummaryType[];
   handleSubmit: (content: string, type: 'text' | 'url') => Promise<void>;
   handleRelatedQuestionClick: (question: string) => void;
+  onOrchestrate?: (content: string) => Promise<void>;
+  currentSessionId?: string | null;
+  chatSessions?: import('@/types').ChatSession[];
 }
 
 const MainContent: React.FC<MainContentProps> = ({
@@ -21,6 +27,7 @@ const MainContent: React.FC<MainContentProps> = ({
   history,
   handleSubmit,
   handleRelatedQuestionClick
+  ,currentSessionId, chatSessions
 }) => {
   // Reference to the setInputContent function from InputSection
   const setInputContentRef = useRef<((content: string) => void) | null>(null);
@@ -69,6 +76,7 @@ const MainContent: React.FC<MainContentProps> = ({
           onSubmit={handleSubmit} 
           isLoading={isLoading} 
           externalSetInputContent={getInputSetter}
+          onOrchestrate={undefined}
         />
         </div>
         
@@ -82,6 +90,12 @@ const MainContent: React.FC<MainContentProps> = ({
         
         {/* Current response */}
         <SummaryOutput data={summaryData} />
+
+        {/* Read summary aloud when new content appears if available */}
+        {/* voiceEnabled could be added to settings later */}
+        {summaryData?.summary && (
+          <VoiceReader summary={summaryData.summary} currentSessionId={currentSessionId} chatSessions={chatSessions} />
+        )}
         
         {/* Related questions (if available) */}
         {summaryData?.relatedQuestions && summaryData.relatedQuestions.length > 0 && (
@@ -101,3 +115,28 @@ const MainContent: React.FC<MainContentProps> = ({
 };
 
 export default MainContent;
+
+// Small component to trigger TTS when summary changes
+const VoiceReader: React.FC<{ summary: string; currentSessionId?: string | null; chatSessions?: import('@/types').ChatSession[] }> = ({ summary, currentSessionId, chatSessions }) => {
+  const { speakText } = useVoice();
+  const [ttsEnabled] = useTTSSetting();
+
+  useEffect(() => {
+    if (!summary || !speakText || !ttsEnabled) return;
+
+    // Check per-session autoRead setting
+    let allowRead = true;
+    if (currentSessionId && chatSessions) {
+      const session = chatSessions.find(s => s.id === currentSessionId);
+      if (session && typeof session.autoRead !== 'undefined') {
+        allowRead = !!session.autoRead;
+      }
+    }
+
+    if (allowRead) {
+      speakText(summary).catch(() => {});
+    }
+  }, [summary, speakText, ttsEnabled, currentSessionId, chatSessions]);
+
+  return null;
+};

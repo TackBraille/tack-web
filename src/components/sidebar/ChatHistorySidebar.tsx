@@ -23,6 +23,7 @@ interface ChatHistorySidebarProps {
   onNewChat: () => void;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
+  onDeleteAll?: () => void;
   history: SummaryOutput[];
   setHistory: React.Dispatch<React.SetStateAction<SummaryOutput[]>>;
 }
@@ -33,6 +34,7 @@ const ChatHistorySidebar = ({
   onNewChat,
   onSelectSession,
   onDeleteSession,
+  onDeleteAll,
   history,
   setHistory,
 }: ChatHistorySidebarProps) => {
@@ -111,6 +113,11 @@ const ChatHistorySidebar = ({
               aria-label="Clear current chat and start new"
             >
               <X size={14} aria-hidden="true" />
+            </Button>
+          )}
+          {sessions.length > 0 && onDeleteAll && (
+            <Button size="sm" variant="destructive" onClick={() => onDeleteAll()} className="ml-2">
+              Delete all
             </Button>
           )}
         </div>

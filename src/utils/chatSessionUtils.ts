@@ -34,7 +34,8 @@ export const createChatSession = (firstQuery?: string): ChatSession => {
     title: '',
     createdAt: new Date(),
     updatedAt: new Date(),
-    firstQuery
+    firstQuery,
+    autoRead: true
   };
   
   const sessions = getChatSessions();
@@ -138,5 +139,19 @@ export const saveSessionHistory = (sessionId: string, history: SummaryOutput[]):
     }
   } catch (error) {
     console.error(`Error saving history for session ${sessionId}:`, error);
+  }
+};
+
+// Delete all chat sessions and histories
+export const deleteAllSessions = (): void => {
+  try {
+    const sessions = getChatSessions();
+    sessions.forEach(s => {
+      localStorage.removeItem(`${SESSION_HISTORY_PREFIX}${s.id}`);
+    });
+    localStorage.removeItem(CHAT_SESSIONS_KEY);
+    localStorage.removeItem(CURRENT_SESSION_KEY);
+  } catch (err) {
+    console.error('Failed to delete all sessions', err);
   }
 };

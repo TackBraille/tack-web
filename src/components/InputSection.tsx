@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, Globe, Send, Loader2, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
+import { extractTextFromPdf } from '@/utils/pdfUtils';
 
 // Add TypeScript declarations for Web Speech API
 declare global {
@@ -17,12 +17,14 @@ interface InputSectionProps {
   onSubmit: (content: string, type: 'text' | 'url') => void;
   isLoading: boolean;
   externalSetInputContent?: (setter: (content: string) => void) => void;
+  onOrchestrate?: (content: string) => Promise<void>;
 }
 
-const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, externalSetInputContent }) => {
+const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, externalSetInputContent, onOrchestrate }) => {
   const [inputContent, setInputContent] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [detectedType, setDetectedType] = useState<'text' | 'url'>('text');
+  const [isParsingPdf, setIsParsingPdf] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   // Function to detect input type
@@ -39,6 +41,43 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
   const handleInputChange = (value: string) => {
     setInputContent(value);
     setDetectedType(detectInputType(value));
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      toast({ title: 'Invalid file', description: 'Only PDF files are supported', variant: 'destructive' });
+      return;
+    }
+    try {
+      setIsParsingPdf(true);
+      const text = await extractTextFromPdf(file);
+      if (text && text.trim()) {
+        setInputContent((prev) => (prev ? prev + '\n\n' + text : text));
+        setDetectedType('text');
+        toast({ title: 'PDF parsed', description: 'PDF text has been added to the input box' });
+      } else {
+        toast({ title: 'PDF empty', description: 'No extractable text found in PDF', variant: 'destructive' });
+      }
+    } catch (err) {
+      console.error('Failed to parse PDF', err);
+      toast({ title: 'PDF parse error', description: 'Unable to extract text from PDF', variant: 'destructive' });
+    } finally {
+      setIsParsingPdf(false);
+      // clear file input value so same file can be re-selected
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleOrchestrate = async () => {
+    if (!inputContent.trim() || !onOrchestrate) return;
+    try {
+      await onOrchestrate(inputContent);
+    } catch (err) {
+      console.error('Orchestration failed', err);
+      toast({ title: 'Orchestration failed', description: 'Unable to run multi-step analysis', variant: 'destructive' });
+    }
   };
 
   // Expose setInputContent to parent components
@@ -63,8 +102,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
   }, []);
 
   // Function to handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitContent = () => {
     if (!inputContent.trim()) {
       toast({
         title: "Empty input",
@@ -86,6 +124,11 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
     onSubmit(inputContent, detectedType);
     // Clear input after submission
     setInputContent('');
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitContent();
   };
 
   // Function to handle speech-to-text
@@ -185,6 +228,17 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
               className="min-h-32 mb-4 resize-y pr-10"
               value={inputContent}
               onChange={(e) => handleInputChange(e.target.value)}
+              onKeyDown={(e) => {
+                // Ignore if composing (IME)
+                // @ts-ignore
+                if (e.nativeEvent && (e.nativeEvent as any).isComposing) return;
+
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  submitContent();
+                }
+                // Shift+Enter will let the textarea insert newline by default
+              }}
               disabled={isLoading}
             />
             
@@ -216,6 +270,17 @@ const InputSection: React.FC<InputSectionProps> = ({ onSubmit, isLoading, extern
                 Stop Listening</span>
            } 
             </Button>
+            <div className="ml-3 mr-2 flex items-center">
+              <input id="pdf-upload-input" type="file" accept="application/pdf" onChange={handleFileChange} className="hidden" />
+              <label htmlFor="pdf-upload-input" className="text-sm text-muted-foreground cursor-pointer">
+                {isParsingPdf ? 'Parsing PDF...' : 'Upload PDF'}
+              </label>
+            </div>
+            <div className="ml-2 flex items-center">
+              <Button type="button" variant="outline" onClick={handleOrchestrate} disabled={!inputContent.trim() || isLoading} className="text-sm">
+                Analyze → Actions
+              </Button>
+            </div>
             
             <Button
               type="submit"

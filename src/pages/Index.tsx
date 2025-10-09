@@ -8,6 +8,9 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { useChatSessions } from '@/hooks/useChatSessions';
 import { useContentSubmission } from '@/hooks/useContentSubmission';
 import { createChatSession } from '@/utils/chatSessionUtils';
+import { useEffect } from 'react';
+import { useVoice } from '@/context/VoiceContext';
+import { runTwoStepAnalysis } from '@/lib/llmOrchestrator';
 
 const Index = () => {
   const {
@@ -20,6 +23,7 @@ const Index = () => {
     handleNewChat,
     handleSelectSession,
     handleDeleteSession,
+    handleDeleteAll,
     handleReset,
     updateSessionAfterResponse
   } = useChatSessions();
@@ -35,6 +39,43 @@ const Index = () => {
     updateSessionAfterResponse,
     history
   });
+
+  const handleOrchestrate = async (content: string) => {
+    try {
+      const result = await runTwoStepAnalysis(content, 'text', history);
+      // Update summary with step1 and add a follow-up item from step2
+      if (result && result.step1) {
+        // Set summary to step1 and add step2 as a related follow-up
+        // Reuse existing session update function for consistency
+        updateSessionAfterResponse(result.step1);
+        // Also set the follow-up (step2) into history so user can inspect
+        setSummaryData(result.step2);
+      }
+    } catch (err) {
+      console.error('Two-step analysis failed', err);
+    }
+  };
+
+  const voice = useVoice();
+
+  useEffect(() => {
+    // Register actions so voice commands can call into app logic
+    voice.registerActions({
+      createChat: handleNewChat,
+      submitText: (text: string) => handleSubmit(text, 'text'),
+      speakCurrentSummary: () => {
+        if (summaryData && voice) {
+          voice.speakText(summaryData.summary).catch(() => {});
+        }
+      },
+      deleteSession: (id?: string) => {
+        if (id) handleDeleteSession(id);
+        else if (currentSessionId) handleDeleteSession(currentSessionId);
+      },
+      selectSession: (id: string) => handleSelectSession(id),
+      getCurrentSessionId: () => currentSessionId,
+    });
+  }, [voice, handleNewChat, handleSubmit, summaryData, handleDeleteSession, currentSessionId, handleSelectSession]);
 
   // This is now just a placeholder function as the actual functionality has moved to the MainContent component
   const handleRelatedQuestionClick = (question: string) => {
@@ -60,6 +101,7 @@ const Index = () => {
             onNewChat={handleNewChat}
             onSelectSession={handleSelectSession}
             onDeleteSession={handleDeleteSession}
+            onDeleteAll={handleDeleteAll}
             history={history}
             setHistory={setHistory}
           />
@@ -70,6 +112,9 @@ const Index = () => {
             history={history}
             handleSubmit={handleSubmit}
             handleRelatedQuestionClick={handleRelatedQuestionClick}
+            currentSessionId={currentSessionId}
+            chatSessions={chatSessions}
+            onOrchestrate={handleOrchestrate}
           />
         </div>
         

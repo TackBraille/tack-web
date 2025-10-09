@@ -17,12 +17,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Settings, Eye } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import useTTSSetting from '@/hooks/useTTSSetting';
 import { UserButton } from '@clerk/clerk-react';
 
 const Header: React.FC = () => {
   const [activeModel, setActiveModel] = useState<AIModel>(getCurrentModel());
   const [activeSubModel, setActiveSubModel] = useState<string | null>(getCurrentSubModel());
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
+  const [ttsEnabled, setTtsEnabled] = useTTSSetting();
 
   useEffect(() => {
     const handleResize = () => {
@@ -171,6 +174,17 @@ const Header: React.FC = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
+              {/* TTS toggle */}
+              <div className="flex items-center gap-2 mt-2">
+                <label htmlFor="tts-toggle" className="text-xs text-muted-foreground mr-2">TTS</label>
+                <Switch
+                  id="tts-toggle"
+                  checked={ttsEnabled}
+                  onCheckedChange={(v) => setTtsEnabled(!!v)}
+                  aria-checked={ttsEnabled}
+                  aria-label="Toggle text to speech"
+                />
+              </div>
             </div>
           )}
         </div>

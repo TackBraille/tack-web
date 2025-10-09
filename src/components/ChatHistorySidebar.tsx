@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
-import SessionsList from './SessionsList';
-import SearchBox from './SearchBox';
+import SessionsList from './sidebar/SessionsList';
+import SearchBox from './sidebar/SearchBox';
 import { useTheme } from 'next-themes';
 // Remove problematic date-fns import as it's actually used in the SessionsList component
 
@@ -24,6 +24,7 @@ interface ChatHistorySidebarProps {
   onNewChat: () => void;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
+  onDeleteAll?: () => void;
   history: SummaryOutput[];
   setHistory: React.Dispatch<React.SetStateAction<SummaryOutput[]>>;
 }
@@ -34,6 +35,7 @@ const ChatHistorySidebar = ({
   onNewChat,
   onSelectSession,
   onDeleteSession,
+  onDeleteAll,
   history,
   setHistory,
 }: ChatHistorySidebarProps) => {
@@ -113,6 +115,9 @@ const ChatHistorySidebar = ({
             >
               <X size={14} aria-hidden="true" />
             </Button>
+          )}
+          {onDeleteAll && (
+            <Button size="sm" variant="destructive" onClick={() => onDeleteAll()} className="ml-2">Delete all</Button>
           )}
         </div>
       </SidebarFooter>

@@ -1,4 +1,5 @@
 import { SummaryOutput, Source, AIModel } from '@/types';
+import { getCurrentDateTimeString } from '@/utils/time';
 
 // Set the API key provided by the user
 // In a production environment, this would be stored in environment variables
@@ -51,6 +52,8 @@ export function createPrompt(content: string, type: 'text' | 'url', conversation
     so clarity and conciseness are essential. The user is interacting with a screen reader.
     
     ${modelEmulation}
+    
+    Current date and time: ${getCurrentDateTimeString()}
   `;
   
   const guidelines = `
