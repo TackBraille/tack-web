@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { VoiceProvider } from "@/context/VoiceContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { ClerkProvider, SignIn, SignInButton, SignedIn, SignedOut, useUser } from "@clerk/clerk-react";
@@ -54,8 +55,10 @@ const setupAPIRoutes = () => {
   };
 };
 
-// Initialize API routes
-setupAPIRoutes();
+// Initialize API routes (only in dev to avoid intercepting real network calls in prod)
+if (import.meta.env.DEV) {
+  setupAPIRoutes();
+}
 
 // LoginScreen component for non-authenticated users
 const LoginScreen = () => {
@@ -118,7 +121,9 @@ const AppContent = () => (
 
 const App = () => (
   <ClerkProvider publishableKey={clerkPubKey}>
-    <AppContent />
+    <VoiceProvider>
+      <AppContent />
+    </VoiceProvider>
   </ClerkProvider>
 );
 

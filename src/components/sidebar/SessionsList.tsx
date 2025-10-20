@@ -39,7 +39,7 @@ const SessionsList = ({
               index={index}
               isActive={currentSession === session.id}
               onSelect={() => onSelectSession(session.id)}
-              onDelete={() => onDeleteSession(session.id)}
+              onDelete={(id?: string) => onDeleteSession(id ?? session.id)}
             />
           ))
         ) : (

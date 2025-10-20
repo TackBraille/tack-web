@@ -7,6 +7,7 @@ import {
   setCurrentSession, 
   createChatSession, 
   deleteChatSession,
+  deleteAllSessions,
   getSessionHistory,
   saveSessionHistory,
   updateChatSession
@@ -52,15 +53,20 @@ export function useChatSessions() {
   const handleDeleteSession = useCallback((sessionId: string) => {
     console.log('Deleting session from hook:', sessionId);
     
-    // Delete from local storage first
+    // Capture the session and history so we can restore on undo
+    const sessions = getChatSessions();
+    const sessionToDelete = sessions.find(s => s.id === sessionId) || null;
+    const sessionHistory = sessionId ? getSessionHistory(sessionId) : [];
+
+    // Remove from storage
     deleteChatSession(sessionId);
-    
-    // Then update the state
-    setChatSessions(prevSessions => prevSessions.filter(s => s.id !== sessionId));
-    
+
+    // Update internal state
+    const remainingSessions = getChatSessions();
+    setChatSessions(remainingSessions);
+
     // If the deleted session was the current one, select another session or create a new one
     if (currentSessionId === sessionId) {
-      const remainingSessions = chatSessions.filter(s => s.id !== sessionId);
       if (remainingSessions.length > 0) {
         handleSelectSession(remainingSessions[0].id);
       } else {
@@ -68,11 +74,41 @@ export function useChatSessions() {
         handleNewChat();
       }
     }
-    
-    // Add toast notification for successful deletion
-    toast({
-      title: "Chat deleted",
-      description: "The chat has been removed from your history.",
+
+    // Show toast with undo option
+    const t = toast({
+      title: 'Chat deleted',
+      description: 'The chat has been removed from your history.',
+      action: (
+        <button
+          onClick={() => {
+            // Restore session and its history
+            if (sessionToDelete) {
+              const restored = [sessionToDelete, ...getChatSessions()];
+              // Persist restored sessions and history
+              try {
+                localStorage.setItem('ai-chat-sessions', JSON.stringify(restored));
+                if (sessionHistory && sessionHistory.length > 0) {
+                  localStorage.setItem(`ai-session-history-${sessionToDelete.id}`, JSON.stringify(sessionHistory));
+                }
+                // Update state
+                setChatSessions(restored);
+                setCurrentSession(sessionToDelete.id);
+                setCurrentSessionId(sessionToDelete.id);
+                setHistory(sessionHistory || []);
+                toast({ title: 'Restored', description: 'Chat restored.' });
+              } catch (err) {
+                console.error('Failed to restore session', err);
+              }
+            }
+            // dismiss this toast
+            t.dismiss();
+          }}
+          className="text-sm font-medium"
+        >
+          Undo
+        </button>
+      ) as any,
     });
   }, [chatSessions, currentSessionId, handleNewChat, handleSelectSession]);
 
@@ -85,6 +121,52 @@ export function useChatSessions() {
     toast({
       title: 'Application reset',
       description: 'The application has been reset.',
+    });
+  }, []);
+
+  const handleDeleteAll = useCallback(() => {
+    const sessions = getChatSessions();
+    const allHistories = sessions.reduce((acc, s) => {
+      acc[s.id] = getSessionHistory(s.id);
+      return acc;
+    }, {} as Record<string, SummaryOutput[]>);
+
+    // Remove all
+    deleteAllSessions();
+    setChatSessions([]);
+    setCurrentSessionId(null);
+    setHistory([]);
+    setSummaryData(null);
+
+    const t = toast({
+      title: 'All chats deleted',
+      description: 'All chats were removed.',
+      action: (
+        <button
+          onClick={() => {
+            try {
+              // restore
+              localStorage.setItem('ai-chat-sessions', JSON.stringify(sessions));
+              Object.keys(allHistories).forEach(id => {
+                localStorage.setItem(`ai-session-history-${id}`, JSON.stringify(allHistories[id]));
+              });
+              setChatSessions(sessions);
+              if (sessions.length > 0) {
+                setCurrentSessionId(sessions[0].id);
+                setCurrentSession(sessions[0].id);
+                setHistory(allHistories[sessions[0].id] || []);
+              }
+              toast({ title: 'Restored', description: 'All chats restored.' });
+            } catch (err) {
+              console.error('Failed to restore all', err);
+            }
+            t.dismiss();
+          }}
+          className="text-sm font-medium"
+        >
+          Undo
+        </button>
+      ) as any,
     });
   }, []);
 
@@ -114,6 +196,7 @@ export function useChatSessions() {
     handleNewChat,
     handleSelectSession,
     handleDeleteSession,
+    handleDeleteAll,
     handleReset,
     updateSessionAfterResponse
   };

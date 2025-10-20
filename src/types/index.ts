@@ -39,6 +39,7 @@ export interface ChatSession {
   createdAt: Date;
   updatedAt: Date;
   firstQuery?: string;
+  autoRead?: boolean; // whether TTS should auto-read summaries for this session
 }
 
 // Interface for renaming a chat session
